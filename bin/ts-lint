@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+PNPM_BIN="${PNPM:-pnpm}"
+
+run_ts_check() {
+  local project="$1"
+  echo "[ts-lint] Running lint in $project" >&2
+  "$PNPM_BIN" --dir "$ROOT_DIR/$project" run lint
+}
+
+run_format() {
+  local project="$1"
+  echo "[ts-lint] Running format in $project" >&2
+  "$PNPM_BIN" --dir "$ROOT_DIR/$project" run format
+}
+
+run_build_check() {
+  local project="$1"
+  echo "[ts-lint] Running build check in $project" >&2
+  if [ "$project" = "frontend" ]; then
+    # For Next.js, run type check and build
+    "$PNPM_BIN" --dir "$ROOT_DIR/$project" run build
+  elif [ "$project" = "backend" ]; then
+    # For backend, just run TypeScript check
+    "$PNPM_BIN" --dir "$ROOT_DIR/$project" run lint
+  fi
+}
+
+run_type_check() {
+  local project="$1"
+  echo "[ts-lint] Running type check in $project" >&2
+  "$PNPM_BIN" --dir "$ROOT_DIR/$project" run typecheck
+}
+
+# Run formatting first
+run_format frontend
+run_format backend
+
+# Run linting
+run_ts_check frontend
+run_ts_check backend
+
+# Run type checks tsc --noEmit
+echo "[ts-lint] Running type checks..." >&2
+run_type_check frontend
+run_type_check backend
+
+# Run build checks to catch additional errors
+echo "[ts-lint] Running build checks..." >&2
+run_build_check frontend
+run_build_check backend

@@ -1,8 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "backend",
+  "name": "backend-garant",
   "main": "src/index.ts",
-  "compatibility_date": "2026-01-15"
+  "compatibility_date": "2026-01-15",
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
@@ -21,13 +21,13 @@
   //     "bucket_name": "my-bucket"
   //   }
   // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
-  //   }
-  // ],
+  "d1_databases": [
+    {
+      "binding": "GARANT_DB_BINDING",
+      "database_name": "garant_db",
+      "database_id": ""
+    }
+  ],
   // "ai": {
   //   "binding": "AI"
   // },

@@ -4,7 +4,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply garant_db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply garant_db"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
@@ -12,6 +15,9 @@
     "hono": "^4.11.4"
   },
   "devDependencies": {
-    "wrangler": "^4.59.2"
+    "@cloudflare/workers-types": "^4.20250220.0",
+    "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0",
+    "wrangler": "^4.4.0"
   }
 }
