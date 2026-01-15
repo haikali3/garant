@@ -7,7 +7,10 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply garant_db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply garant_db"
+    "db:migrate:remote": "wrangler d1 migrations apply garant_db",
+    "lint": "biome check --write",
+    "format": "biome format --write",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

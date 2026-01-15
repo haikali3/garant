@@ -7,18 +7,30 @@ PNPM_BIN="${PNPM:-pnpm}"
 
 run_ts_check() {
   local project="$1"
+  if [ ! -d "$ROOT_DIR/$project" ]; then
+    echo "[ts-lint] Skipping lint in $project (directory not found)" >&2
+    return 0
+  fi
   echo "[ts-lint] Running lint in $project" >&2
   "$PNPM_BIN" --dir "$ROOT_DIR/$project" run lint
 }
 
 run_format() {
   local project="$1"
+  if [ ! -d "$ROOT_DIR/$project" ]; then
+    echo "[ts-lint] Skipping format in $project (directory not found)" >&2
+    return 0
+  fi
   echo "[ts-lint] Running format in $project" >&2
   "$PNPM_BIN" --dir "$ROOT_DIR/$project" run format
 }
 
 run_build_check() {
   local project="$1"
+  if [ ! -d "$ROOT_DIR/$project" ]; then
+    echo "[ts-lint] Skipping build check in $project (directory not found)" >&2
+    return 0
+  fi
   echo "[ts-lint] Running build check in $project" >&2
   if [ "$project" = "frontend" ]; then
     # For Next.js, run type check and build
@@ -31,6 +43,10 @@ run_build_check() {
 
 run_type_check() {
   local project="$1"
+  if [ ! -d "$ROOT_DIR/$project" ]; then
+    echo "[ts-lint] Skipping type check in $project (directory not found)" >&2
+    return 0
+  fi
   echo "[ts-lint] Running type check in $project" >&2
   "$PNPM_BIN" --dir "$ROOT_DIR/$project" run typecheck
 }
