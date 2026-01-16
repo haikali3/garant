@@ -28,7 +28,10 @@ auth.post('/auth/nonce', async (c) => {
 
 // POST /auth/verify -> verifies signature over message containing nonce
 auth.post('/auth/verify', async (c) => {
-  
+  // neeed siwe parsing
+  // sign parsing
+  // nonce lookup + ttl check + nonce consumption to prevent replay
+
 }) 
 
 // GET /me -> returns authenticated user info
