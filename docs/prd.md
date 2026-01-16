@@ -92,7 +92,8 @@ It **guarantees** that off-chain actions respect on-chain truth.
 * Sign-in with Ethereum (signature based)
 * Nonce-based replay protection
 * JWT session issued by backend
-* Wallet → User mapping stored in DB
+* One user → many wallets; one (address, chainId) wallet → one user
+* Address canonicalization: store `address` normalized (lowercase) to avoid duplicate-case collisions
 
 ---
 
