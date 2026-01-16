@@ -16,21 +16,26 @@ const verifyBodySchema = z.object({
 	signature: z.string().min(1),
 });
 
+const nonceBodySchema = z.object({
+	address: z.string().min(1),
+});
+
+const invalidBody = (c: any, issues: z.ZodIssue[]) => {
+	const details = issues.map((issue) => ({
+		path: issue.path,
+		message: issue.message,
+	}));
+	return c.json({ error: "invalid body", details }, 400);
+};
+
 // POST /auth/nonce -> returns a nonce for a given address
 auth.post("/nonce", async (c) => {
 	// Accept JSON { address, chainId }.
-	const body = (await c.req.json().catch(() => ({}))) as { address?: string };
-	// - Validate address format and chainId is allowed.
-	const addr = body.address ? normalizeAddress(body.address) : undefined;
-	// - Normalize address (e.g., lowercase).
-	if (!addr)
-		return c.json(
-			{
-				error: "invalid body",
-				details: [{ path: ["address"], message: "address required" }],
-			},
-			400,
-		);
+	const parsed = nonceBodySchema.safeParse(
+		await c.req.json().catch(() => ({})),
+	);
+	if (!parsed.success) return invalidBody(c, parsed.error.issues);
+	const addr = normalizeAddress(parsed.data.address);
 	// - Generate a random nonce.
 	const nonce = generateNonce();
 	const now = nowMs();
@@ -44,13 +49,7 @@ auth.post("/verify", async (c) => {
 	const parsed = verifyBodySchema.safeParse(
 		await c.req.json().catch(() => ({})),
 	);
-	if (!parsed.success) {
-		const details = parsed.error.issues.map((issue) => ({
-			path: issue.path,
-			message: issue.message,
-		}));
-		return c.json({ error: "invalid body", details }, 400);
-	}
+	if (!parsed.success) return invalidBody(c, parsed.error.issues);
 
 	const { address, message, signature } = parsed.data;
 
