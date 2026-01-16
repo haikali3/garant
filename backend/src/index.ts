@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { getDb } from "./db";
 import type { Env } from "./env";
-import { users } from "./schema";
+import { users } from "./db/schema";
 
 const app = new Hono<{ Bindings: Env }>();
 
