@@ -1,4 +1,9 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	integer,
+	sqliteTable,
+	text,
+	uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
 	id: text("id").primaryKey(),
@@ -23,7 +28,7 @@ export const wallets = sqliteTable("wallets", {
 export const auth_nonces = sqliteTable("auth_nonces", {
 	id: text("id").primaryKey(),
 	nonce: text("nonce").notNull(),
-	walletAddress: text("wallet_address").notNull().unique(),
+	walletAddress: text("wallet_address").notNull(),
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
 });
@@ -33,7 +38,7 @@ export const sessions = sqliteTable("sessions", {
 	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	jti : text("jti").notNull().unique(), // JWT ID for identifying the session
+	jti: text("jti").notNull().unique(), // JWT ID for identifying the session
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
 	revokedAt: integer("revoked_at", { mode: "timestamp_ms" }),
@@ -71,15 +76,21 @@ export const contracts = sqliteTable("contracts", {
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-export const events = sqliteTable("events", {
-	id: text("id").primaryKey(),
-	contractId: text("contract_id")
-		.notNull()
-		.references(() => contracts.id, { onDelete: "cascade" }),
-	eventType: text("event_type").notNull(), // e.g. Transfer, Approval, etc.
-	txHash: text("tx_hash").unique().notNull(),
-	logIndex: integer("log_index").unique().notNull(),
-	blockNumber: integer("block_number").notNull(),
-	payload: text("payload").notNull(),
-	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-});
+export const events = sqliteTable(
+	"events",
+	{
+		id: text("id").primaryKey(),
+		contractId: text("contract_id")
+			.notNull()
+			.references(() => contracts.id, { onDelete: "cascade" }),
+		eventType: text("event_type").notNull(), // e.g. Transfer, Approval, etc.
+		txHash: text("tx_hash").notNull(),
+		logIndex: integer("log_index").notNull(),
+		blockNumber: integer("block_number").notNull(),
+		payload: text("payload").notNull(),
+		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+	},
+	(table) => [
+		uniqueIndex("events_tx_hash_log_index").on(table.txHash, table.logIndex),
+	],
+);

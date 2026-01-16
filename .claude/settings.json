@@ -1,0 +1,9 @@
+{
+  "skills": {
+    "web3": {
+      "name": "Web3 Expert",
+      "description": "Web3 expertise for wallet auth, ownership verification, smart contracts, and EVM interactions",
+      "file": "skills/web3-expert.md"
+    }
+  }
+}
