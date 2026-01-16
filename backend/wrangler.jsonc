@@ -11,9 +11,7 @@
 	// 	"ALLOWED_CHAIN_IDS": "1,8453,11155111,84532",
 	// 	"SIWE_DOMAIN": "localhost"
 	// },
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
+	"compatibility_flags": ["nodejs_compat"],
 	// "vars": {
 	//   "MY_VAR": "my-variable"
 	// },

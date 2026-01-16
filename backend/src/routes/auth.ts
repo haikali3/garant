@@ -20,7 +20,10 @@ const nonceBodySchema = z.object({
 	address: z.string().min(1),
 });
 
-const invalidBody = (c: any, issues: z.ZodIssue[]) => {
+const invalidBody = (
+	c: { json: (data: unknown, status: number) => Response },
+	issues: z.ZodIssue[],
+) => {
 	const details = issues.map((issue) => ({
 		path: issue.path,
 		message: issue.message,
@@ -98,7 +101,7 @@ auth.post("/verify", async (c) => {
 	if (siweMsg.domain !== "localhost") {
 		return c.json({ error: "invalid domain" }, 400);
 	}
-	if (siweMsg.uri !== "http://localhost:3000") {
+	if (siweMsg.uri !== "http://localhost:8787") {
 		return c.json({ error: "invalid uri" }, 400);
 	}
 

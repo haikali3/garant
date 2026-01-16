@@ -1,9 +1,9 @@
 import { Hono } from "hono";
+import { logger } from "hono/logger";
 import { getDb } from "./db";
 import { users } from "./db/schema";
 import type { Env } from "./env";
 import auth from "./routes/auth";
-import { logger } from "hono/logger";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -18,6 +18,6 @@ app.get("/db/health", async (c) => {
 	return c.json({ ok: true });
 });
 
-app.route("/auth", auth)
+app.route("/auth", auth);
 
 export default app;
