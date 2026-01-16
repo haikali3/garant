@@ -53,35 +53,45 @@ auth.post("/auth/verify", async (c) => {
 		return c.json({ error: "nonce expired" }, 400);
 	}
 
-	let siwe: SiweMessage;
+	let siweMsg: SiweMessage;
 	try {
-		siwe = new SiweMessage(message);
+		siweMsg = new SiweMessage(message);
 	} catch (err) {
-    console.error('verify failed', err)
+		console.error("verify failed", err);
 		return c.json({ error: "invalid siwe message" }, 400);
 	}
 
 	// nonce match
-	if (siwe.nonce !== entry.nonce) {
+	if (siweMsg.nonce !== entry.nonce) {
 		return c.json({ error: "nonce mismatch" }, 400);
 	}
 
 	// chain allowlist
 	const allowedChains = new Set([1, 8453]); // eth mainnet and base
-	if (!allowedChains.has(Number(siwe.chainId))) {
+	if (!allowedChains.has(Number(siweMsg.chainId))) {
 		return c.json({ error: "chain not allowed" }, 400);
 	}
 
 	// time checks
-	if (siwe.expirationTime && Date.now() > Date.parse(siwe.expirationTime)) {
+	if (
+		siweMsg.expirationTime &&
+		Date.now() > Date.parse(siweMsg.expirationTime)
+	) {
 		return c.json({ error: "message expired" }, 400);
 	}
-	if (siwe.notBefore && Date.now() < Date.parse(siwe.notBefore)) {
+	if (siweMsg.notBefore && Date.now() < Date.parse(siweMsg.notBefore)) {
 		return c.json({ error: "message not valid yet" }, 400);
 	}
 
+	if (siweMsg.domain !== "localhost") {
+		return c.json({ error: "invalid domain" }, 400);
+	}
+	if (siweMsg.uri !== "http://localhost:3000") {
+		return c.json({ error: "invalid uri" }, 400);
+	}
+
 	// Verify signature using viem (Cloudflare Workers/Node ESM compatible)
-	const msgAddr = getAddress(siwe.address);
+	const msgAddr = getAddress(siweMsg.address);
 	if (msgAddr !== getAddress(addr)) {
 		return c.json({ error: "address mismatch" }, 400);
 	}
@@ -94,7 +104,8 @@ auth.post("/auth/verify", async (c) => {
 			signature,
 		});
 		if (!recovered) return c.json({ error: "invalid signature" }, 401);
-	} catch (e) {
+	} catch (err) {
+		console.error("signature verification error", err);
 		return c.json({ error: "verification failed" }, 500);
 	}
 
