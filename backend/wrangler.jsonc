@@ -3,6 +3,14 @@
 	"name": "backend-garant",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-01-15",
+	"vars": {
+		"JWT_ISSUER": "garant",
+		"JWT_AUDIENCE": "garant-api",
+		"SESSION_TTL_SECONDS": "3600",
+		"NONCE_TTL_SECONDS": "300",
+		"ALLOWED_CHAIN_IDS": "1,8453,11155111,84532",
+		"SIWE_DOMAIN": "localhost"
+	},
 	// "compatibility_flags": [
 	//   "nodejs_compat"
 	// ],
