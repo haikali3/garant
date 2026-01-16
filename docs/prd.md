@@ -204,34 +204,90 @@ Garant is **infrastructure**, not a consumer wallet.
 
 ## 9. Data Models (High-Level)
 
+### Identity & Wallets (Multi-chain)
+
+Garant supports **one user → many wallets**, and **one wallet → exactly one user**.
+
+A wallet is uniquely identified by:
+
+* `address` (EVM address)
+* `chainId` (EVM chain id)
+
+This allows the *same address* to exist across multiple chains as distinct wallet identities.
+
 ### User
 
-* id
-* walletAddress
-* createdAt
-* lastLoginAt
+* `id`
+* `createdAt`
+
+### Wallet
+
+* `id`
+* `userId` (FK → `users.id`)
+* `address`
+* `chainId`
+* `createdAt`
+
+Constraints:
+
+* Unique (`address`, `chainId`) to guarantee a wallet belongs to only one user
+* `userId` is not unique, so a user can link multiple wallets
+
+### AuthNonce (Wallet Authentication)
+
+* `id`
+* `nonce`
+* `walletAddress`
+* `chainId`
+* `createdAt`
+* `expiresAt`
+* `consumedAt` (optional)
 
 ### Session
 
-* userId
-* jwt
-* expiresAt
+* `id`
+* `userId` (FK → `users.id`)
+* `jti` (JWT id)
+* `createdAt`
+* `expiresAt`
+* `revokedAt` (optional)
 
 ### AccessRule
 
-* id
-* contractAddress
-* tokenType
-* minBalance
-* chainId
+* `id`
+* `name` (optional)
+* `ruleType` (e.g. `erc20`, `erc721`, `erc1155`)
+* `contractAddress`
+* `chainId`
+* `tokenId` (optional)
+* `minBalance` (optional)
+* `createdAt`
 
-### Event
+### AccessAssignment
 
-* txHash
-* eventType
-* walletAddress
-* blockNumber
-* timestamp
+* `id`
+* `userId` (FK → `users.id`)
+* `accessRuleId` (FK → `access_rules.id`)
+* `assignedAt`
+
+### Indexed Contracts
+
+* `id`
+* `address`
+* `chainId`
+* `contractType`
+* `createdAt`
+
+### Indexed Events
+
+* `id`
+* `contractId` (FK → `contracts.id`)
+* `eventType`
+* `txHash`
+* `logIndex`
+* `blockNumber`
+* `payload` (raw event payload)
+* `createdAt`
 
 ---
 
