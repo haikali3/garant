@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { generateNonce, SiweMessage } from "siwe";
 import { getAddress, isHex } from "viem";
 import { z } from "zod";
-import { expiresAt, normalizeAddress, nowMs } from "../helper/auth";
+import { expiresAt, normalizeAddress, nowMs } from "../helper/helper-auth";
 
 const auth = new Hono();
 
@@ -17,7 +17,7 @@ const verifyBodySchema = z.object({
 });
 
 // POST /auth/nonce -> returns a nonce for a given address
-auth.post("/auth/nonce", async (c) => {
+auth.post("/nonce", async (c) => {
 	// Accept JSON { address, chainId }.
 	const body = (await c.req.json().catch(() => ({}))) as { address?: string };
 	// - Validate address format and chainId is allowed.

@@ -3,9 +3,11 @@ import { getDb } from "./db";
 import { users } from "./db/schema";
 import type { Env } from "./env";
 import auth from "./routes/auth";
+import { logger } from "hono/logger";
 
 const app = new Hono<{ Bindings: Env }>();
 
+app.use(logger());
 app.get("/", (c) => {
 	return c.text("Hello Hono!");
 });
@@ -17,6 +19,5 @@ app.get("/db/health", async (c) => {
 });
 
 app.route("/auth", auth)
-
 
 export default app;
