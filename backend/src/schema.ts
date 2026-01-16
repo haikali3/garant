@@ -38,6 +38,7 @@ export const auth_nonces = sqliteTable("auth_nonces", {
 	chainId: integer("chain_id").notNull(),
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+	consumedAt: integer("consumed_at", { mode: "timestamp_ms" }),
 }, (table) => [
 	uniqueIndex("auth_nonces_wallet_chain").on(table.walletAddress, table.chainId),
 ]);

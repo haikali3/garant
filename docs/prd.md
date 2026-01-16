@@ -180,8 +180,8 @@ Garant is **infrastructure**, not a consumer wallet.
 ### Backend
 
 * Hono (TypeScript)
-* PostgreSQL (Neon)
-* Drizzle ORM
+* Cloudflare D1 (SQLite)
+* Drizzle ORM (SQLite driver)
 * Redis (rate limiting, caching)
 * JWT-based auth
 * Cloudflare Workers deployment
