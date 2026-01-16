@@ -33,7 +33,7 @@ auth.post("/nonce", async (c) => {
 });
 
 // POST /auth/verify -> verifies signature over message containing nonce
-auth.post("/auth/verify", async (c) => {
+auth.post("/verify", async (c) => {
 	const parsed = verifyBodySchema.safeParse(
 		await c.req.json().catch(() => ({})),
 	);
