@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { expiresAt, normalizeAddress, nowMs } from '../helper/auth'
-import { generateNonce } from 'siwe'
+import { generateNonce, SiweMessage } from 'siwe'
 import z from 'zod'
-import { Hex } from 'viem'
+import { isHex, getAddress } from 'viem'
 const auth = new Hono()
 
 export const NONCE_TTL_MS = 5 * 60 * 1000 // 5 minutes
@@ -33,12 +33,15 @@ auth.post('/auth/nonce', async (c) => {
 
 // POST /auth/verify -> verifies signature over message containing nonce
 auth.post('/auth/verify', async (c) => {
-  // need siwe parsing
   const parsed = verifyBodySchema.safeParse(await c.req.json().catch(() => ({})))
   if (!parsed.success) return c.json({ error: 'invalid body' }, 400)
-  const { address, message, signature } = parsed.data
-  const addr = normalizeAddress(address)
 
+  const { address, message, signature } = parsed.data
+
+  if (!isHex(signature)) return c.json({ error: 'invalid signature format' }, 400)
+
+  // Parse SIWE message
+  const addr = normalizeAddress(address)
   const entry = nonces.get(addr)
   if (!entry) return c.json({ error: 'nonce not found' }, 400)
   if (entry.expiresAt < nowMs()) {
@@ -46,6 +49,32 @@ auth.post('/auth/verify', async (c) => {
     return c.json({ error: 'nonce expired' }, 400)
   }
   if (!message.includes(entry.nonce)) return c.json({ error: 'nonce mismatch' }, 400)
+  
+  let siwe: SiweMessage
+  try {
+    siwe = new SiweMessage(message)
+  } catch (e) {
+    return c.json({ error: 'invalid siwe message' }, 400)
+  }
+
+  // nonce match
+  if (siwe.nonce !== entry.nonce) {
+    return c.json({ error: 'nonce mismatch' }, 400)
+  }
+
+  // chain allowlist
+  const allowedChains = new Set([1, 8453]) // eth mainnet and base
+  if ( !allowedChains.has(Number(siwe.chainId)) ) {
+    return c.json({ error: 'chain not allowed' }, 400)
+  }
+
+  // time checks
+  if (siwe.expirationTime && Date.now() > Date.parse(siwe.expirationTime)) {
+    return c.json({ error: 'message expired' }, 400)
+  }
+  if (siwe.notBefore && Date.now() < Date.parse(siwe.notBefore)) {
+    return c.json({ error: 'message not valid yet' }, 400)
+  }
 
   // Verify signature using viem (Cloudflare Workers/Node ESM compatible)
   try {
@@ -54,7 +83,7 @@ auth.post('/auth/verify', async (c) => {
     const recovered = await verifyMessage({
       address: getAddress(addr),
       message,
-      signature: signature as Hex,
+      signature,
     })
     if (!recovered) return c.json({ error: 'invalid signature' }, 401)
   } catch (e) {
