@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+PNPM_BIN="${PNPM:-pnpm}"
+
+show_help() {
+  cat << 'EOF'
+Usage: bin/dev [OPTION]
+
+Options:
+  --web              Start frontend development server
+  --api              Start backend development server
+  --all              Start both frontend and backend development servers
+  --help, -h         Show this help message
+
+Examples:
+  bin/dev --web      # Start frontend only
+  bin/dev --api      # Start backend only
+  bin/dev --all      # Start frontend and backend in parallel
+  bin/dev --help     # Show this help message
+
+EOF
+}
+
+# Show help if no arguments or help flag
+if [[ $# -eq 0 ]]; then
+  show_help
+  exit 0
+fi
+
+TARGETS=()
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    --web)
+      TARGETS+=("frontend")
+      shift
+      ;;
+    --api)
+      TARGETS+=("backend")
+      shift
+      ;;
+    --all)
+      TARGETS+=("frontend" "backend")
+      shift
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      show_help
+      exit 1
+      ;;
+  esac
+done
+
+if [[ ${#TARGETS[@]} -eq 0 ]]; then
+  echo "Error: No target specified" >&2
+  show_help
+  exit 1
+fi
+
+start_dev() {
+  local target="$1"
+  if [ ! -d "$ROOT_DIR/$target" ]; then
+    echo "Error: $target directory not found at $ROOT_DIR/$target" >&2
+    return 1
+  fi
+
+  echo "[dev] Installing dependencies for $target..." >&2
+  "$PNPM_BIN" --dir "$ROOT_DIR/$target" install
+
+  echo "[dev] Starting $target development server..." >&2
+  "$PNPM_BIN" --dir "$ROOT_DIR/$target" run dev
+}
+
+# Start all targets in background
+for target in "${TARGETS[@]}"; do
+  start_dev "$target" &
+done
+
+# Wait for all background jobs
+wait
