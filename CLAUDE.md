@@ -1,1 +1,1 @@
-- use base UI for component
+- use shadcn always
