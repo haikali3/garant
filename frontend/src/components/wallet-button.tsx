@@ -2,6 +2,7 @@
 
 import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { createSignMessage, getNonce, verifySignature } from "@/lib/auth";
 import { getAddress } from "viem";
 import { Button } from "./ui/button";
@@ -12,54 +13,55 @@ export function WalletButton() {
 	const { disconnect } = useDisconnect();
 	const { signMessageAsync, isPending: isSigning } = useSignMessage();
 
-	const [isLoading, setIsLoading] = useState(false);
 	const [authToken, setAuthToken] = useState<string | null>(null);
-	const [error, setError] = useState<string | null>(null);
 
 	const handleConnect = async () => {
-		try {
-			setError(null);
-			const connector = connectors[0];
-			if (!connector) {
-				setError("No wallet connector available");
-				return;
-			}
-			connect({ connector });
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Connection failed");
+		const connector = connectors[0];
+		if (!connector) {
+			return;
 		}
-	};
-
-	const handleSign = async () => {
-		if (!address) return;
-
-		setIsLoading(true);
-		setError(null);
-
-		try {
-			const nonce = await getNonce(address);
-			const message = await createSignMessage(getAddress(address), nonce);
-
-			const signature = await signMessageAsync({
-				message,
-			});
-
-			const { token } = await verifySignature(address, message, signature);
-			setAuthToken(token);
-			localStorage.setItem("authToken", token);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Sign-in failed");
-		} finally {
-			setIsLoading(false);
-		}
+		connect({ connector });
 	};
 
 	const handleDisconnect = () => {
 		disconnect();
 		setAuthToken(null);
 		localStorage.removeItem("authToken");
-		setError(null);
 	};
+
+	const { data: nonce } = useQuery({
+		queryKey: ["nonce", address],
+		queryFn: () => (address ? getNonce(address) : Promise.reject()),
+		enabled: !!address && !authToken,
+		staleTime: 10000,
+	});
+
+	const { mutate: sign, isPending: signMutationPending, error: signError } = useMutation({
+		mutationFn: async () => {
+			if (!address || !nonce) throw new Error("Missing address or nonce");
+
+			const message = await createSignMessage(getAddress(address), nonce);
+			const signature = await signMessageAsync({ message });
+			const { token } = await verifySignature(address, message, signature);
+
+			return { token };
+		},
+		onSuccess: (data) => {
+			setAuthToken(data.token);
+			localStorage.setItem("authToken", data.token);
+		},
+	});
+
+	useQuery({
+		queryKey: ["autoSign", address, nonce, authToken],
+		queryFn: () => {
+			if (isConnected && address && nonce && !authToken) {
+				sign();
+			}
+			return null;
+		},
+		enabled: isConnected && !!address && !!nonce && !authToken && !isSigning,
+	});
 
 	if (!isConnected) {
 		return (
@@ -67,11 +69,9 @@ export function WalletButton() {
 				<Button
 					onClick={handleConnect}
 					disabled={isConnecting}
-					className=""
 				>
 					{isConnecting ? "Connecting..." : "Connect Wallet"}
 				</Button>
-				{error && <p className="text-red-600 text-sm">{error}</p>}
 			</div>
 		);
 	}
@@ -79,41 +79,41 @@ export function WalletButton() {
 	if (!authToken) {
 		return (
 			<div className="flex flex-col gap-2">
-				<div className="text-sm text-gray-600">
+				<div className="text-sm text-muted-foreground">
 					Connected: <span className="font-mono text-xs">{address}</span>
 				</div>
-				<button
-					onClick={handleSign}
-					disabled={isLoading || isSigning}
-					className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-				>
-					{isLoading || isSigning ? "Signing..." : "Sign In"}
-				</button>
-				<button
+				{(signMutationPending || isSigning) && (
+					<div className="text-sm">Authenticating...</div>
+				)}
+				<Button
 					onClick={handleDisconnect}
-					className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+					variant="outline"
 				>
 					Disconnect
-				</button>
-				{error && <p className="text-red-600 text-sm">{error}</p>}
+				</Button>
+				{signError && (
+					<p className="text-destructive text-sm">
+						{signError.message || "Authentication failed"}
+					</p>
+				)}
 			</div>
 		);
 	}
 
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="text-sm text-green-600 font-semibold">
+			<div className="text-sm font-semibold text-primary">
 				✓ Authenticated
 			</div>
-			<div className="text-sm text-gray-600">
+			<div className="text-sm text-muted-foreground">
 				Address: <span className="font-mono text-xs">{address}</span>
 			</div>
-			<div className="text-xs text-gray-500">
+			<div className="text-xs text-muted-foreground">
 				Token: <span className="font-mono">{authToken.slice(0, 20)}...</span>
 			</div>
 			<Button
 				onClick={handleDisconnect}
-				className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+				variant="destructive"
 			>
 				Disconnect
 			</Button>

@@ -1,1 +1,2 @@
 - use shadcn always
+- use tanstack query always
