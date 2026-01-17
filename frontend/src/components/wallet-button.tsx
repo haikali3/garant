@@ -4,6 +4,7 @@ import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
 import { useState } from "react";
 import { createSignMessage, getNonce, verifySignature } from "@/lib/auth";
 import { getAddress } from "viem";
+import { Button } from "./ui/button";
 
 export function WalletButton() {
 	const { address, isConnected } = useAccount();
@@ -63,13 +64,13 @@ export function WalletButton() {
 	if (!isConnected) {
 		return (
 			<div className="flex flex-col gap-2">
-				<button
+				<Button
 					onClick={handleConnect}
 					disabled={isConnecting}
-					className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+					className=""
 				>
 					{isConnecting ? "Connecting..." : "Connect Wallet"}
-				</button>
+				</Button>
 				{error && <p className="text-red-600 text-sm">{error}</p>}
 			</div>
 		);
@@ -110,12 +111,12 @@ export function WalletButton() {
 			<div className="text-xs text-gray-500">
 				Token: <span className="font-mono">{authToken.slice(0, 20)}...</span>
 			</div>
-			<button
+			<Button
 				onClick={handleDisconnect}
 				className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
 			>
 				Disconnect
-			</button>
+			</Button>
 		</div>
 	);
 }

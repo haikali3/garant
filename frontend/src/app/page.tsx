@@ -41,7 +41,7 @@ export default function Home() {
 								Supported Chains
 							</h3>
 							<div className="flex gap-2">
-								<Badge variant="secondary">
+								<Badge variant="default">
 									Ethereum
 								</Badge>
 								<Badge variant="secondary">
