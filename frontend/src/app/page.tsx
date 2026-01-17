@@ -1,6 +1,7 @@
 "use client";
 
 import { WalletButton } from "@/components/wallet-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
 	Card,
 	CardContent,
@@ -15,13 +16,16 @@ export default function Home() {
 		<div className="min-h-screen">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 				{/* Header */}
-				<div className="mb-12">
-					<h1 className="text-4xl font-bold mb-2">
-						Garant
-					</h1>
-					<p className="text-lg text-muted-foreground">
-						Web3 trust and access platform
-					</p>
+				<div className="mb-12 flex items-start justify-between">
+					<div>
+						<h1 className="text-4xl font-bold mb-2">
+							Garant
+						</h1>
+						<p className="text-lg text-muted-foreground">
+							Web3 trust and access platform
+						</p>
+					</div>
+					<ThemeToggle />
 				</div>
 
 				{/* Main Card */}
