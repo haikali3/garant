@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#
+# Database migration helper for Drizzle ORM
+# See docs/drizzle-guide.md for more details
+#
+set -euo pipefail
+
+show_usage() {
+    cat << 'EOF'
+Usage:
+  bin/migrate generate <migration_name>  # Generate migration SQL files
+  bin/migrate migrate                    # Apply pending migrations to database
+  bin/migrate check                      # Check for migration race conditions
+  bin/migrate pull                       # Introspect database schema
+  bin/migrate studio                     # Open Drizzle Studio for database browsing
+  bin/migrate push                       # Push schema directly to database
+  bin/migrate drop                       # Drop the last migration
+  bin/migrate --help, -h                 # Show this help message
+
+Examples:
+  bin/migrate generate add_users_table
+  bin/migrate migrate
+  bin/migrate check
+  bin/migrate pull
+  bin/migrate studio
+
+See docs/drizzle-guide.md for detailed information.
+EOF
+    exit 1
+}
+
+if [ $# -eq 0 ]; then
+    show_usage
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+PNPM_BIN="${PNPM:-pnpm}"
+
+case "$1" in
+    -h|--help)
+        show_usage
+        ;;
+    generate)
+        if [ $# -lt 2 ]; then
+            echo "Error: migration name required"
+            show_usage
+        fi
+        echo "📝 Generating migration: $2"
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:generate -- --name "$2"
+        ;;
+    migrate)
+        echo "🚀 Applying migrations to database..."
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:migrate
+        ;;
+    check)
+        echo "🔍 Checking migrations for race conditions..."
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:check
+        ;;
+    pull)
+        echo "🔄 Introspecting database schema..."
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:pull
+        ;;
+    studio)
+        echo "🎨 Opening Drizzle Studio..."
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:studio
+        ;;
+    push)
+        echo "⚡ Pushing schema to database..."
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:push
+        ;;
+    drop)
+        echo "🗑️  Dropping last migration..."
+        "$PNPM_BIN" --dir "$ROOT_DIR/backend" run db:drop
+        ;;
+    *)
+        echo "Unknown command: $1" >&2
+        show_usage
+        ;;
+esac

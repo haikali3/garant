@@ -13,12 +13,14 @@ Options:
   --web              Start frontend development server
   --api              Start backend development server
   --all              Start both frontend and backend development servers
+  migrate            Database migration commands (see bin/migrate --help)
   --help, -h         Show this help message
 
 Examples:
   bin/dev --web      # Start frontend only
   bin/dev --api      # Start backend only
   bin/dev --all      # Start frontend and backend in parallel
+  bin/dev migrate    # Show migration commands
   bin/dev --help     # Show this help message
 
 EOF
@@ -33,31 +35,33 @@ fi
 TARGETS=()
 
 # Parse arguments
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    -h|--help)
-      show_help
-      exit 0
-      ;;
-    --web)
-      TARGETS+=("frontend")
-      shift
-      ;;
-    --api)
-      TARGETS+=("backend")
-      shift
-      ;;
-    --all)
-      TARGETS+=("frontend" "backend")
-      shift
-      ;;
-    *)
-      echo "Unknown argument: $1" >&2
-      show_help
-      exit 1
-      ;;
-  esac
-done
+case "$1" in
+  -h|--help)
+    show_help
+    exit 0
+    ;;
+  migrate)
+    "$SCRIPT_DIR/migrate" "${@:2}"
+    exit $?
+    ;;
+  --web)
+    TARGETS+=("frontend")
+    shift
+    ;;
+  --api)
+    TARGETS+=("backend")
+    shift
+    ;;
+  --all)
+    TARGETS+=("frontend" "backend")
+    shift
+    ;;
+  *)
+    echo "Unknown argument: $1" >&2
+    show_help
+    exit 1
+    ;;
+esac
 
 if [[ ${#TARGETS[@]} -eq 0 ]]; then
   echo "Error: No target specified" >&2
