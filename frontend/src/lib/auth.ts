@@ -54,7 +54,9 @@ export async function verifySignature(
 	return (await res.json()) as { token: string; address: string };
 }
 
-export async function getMe(token: string): Promise<{ authenticated: boolean; address?: string }> {
+export async function getMe(
+	token: string,
+): Promise<{ authenticated: boolean; address?: string }> {
 	const res = await fetch(`${API_URL}/auth/me`, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
@@ -62,7 +64,9 @@ export async function getMe(token: string): Promise<{ authenticated: boolean; ad
 	if (!res.ok) {
 		if (res.status === 401) return { authenticated: false };
 		const error = (await res.json()) as { error?: string };
-		throw new Error(`Failed to fetch user info: ${error.error || `HTTP ${res.status}`}`);
+		throw new Error(
+			`Failed to fetch user info: ${error.error || `HTTP ${res.status}`}`,
+		);
 	}
 	return (await res.json()) as { authenticated: boolean; address?: string };
 }

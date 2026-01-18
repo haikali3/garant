@@ -39,7 +39,11 @@ export function WalletButton() {
 		staleTime: 10000,
 	});
 
-	const { mutate: sign, isPending: signMutationPending, error: signError } = useMutation({
+	const {
+		mutate: sign,
+		isPending: signMutationPending,
+		error: signError,
+	} = useMutation({
 		mutationFn: async () => {
 			if (!address || !nonce) throw new Error("Missing address or nonce");
 
@@ -56,19 +60,31 @@ export function WalletButton() {
 	});
 
 	useEffect(() => {
-		if (shouldAttemptSign && isConnected && address && nonce && !authToken && !isSigning) {
+		if (
+			shouldAttemptSign &&
+			isConnected &&
+			address &&
+			nonce &&
+			!authToken &&
+			!isSigning
+		) {
 			setShouldAttemptSign(false);
 			sign();
 		}
-	}, [shouldAttemptSign, isConnected, address, nonce, authToken, isSigning, sign]);
+	}, [
+		shouldAttemptSign,
+		isConnected,
+		address,
+		nonce,
+		authToken,
+		isSigning,
+		sign,
+	]);
 
 	if (!isConnected) {
-	return (
+		return (
 			<div className="flex flex-col gap-2">
-				<Button
-					onClick={handleConnect}
-					disabled={isConnecting}
-				>
+				<Button onClick={handleConnect} disabled={isConnecting}>
 					{isConnecting ? "Connecting..." : "Connect Wallet"}
 				</Button>
 			</div>
@@ -84,10 +100,7 @@ export function WalletButton() {
 				{(signMutationPending || isSigning) && (
 					<div className="text-sm">Authenticating...</div>
 				)}
-				<Button
-					onClick={handleDisconnect}
-					variant="outline"
-				>
+				<Button onClick={handleDisconnect} variant="outline">
 					Disconnect
 				</Button>
 				{signError && (
@@ -101,19 +114,14 @@ export function WalletButton() {
 
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="text-sm font-semibold text-primary">
-				✓ Authenticated
-			</div>
+			<div className="text-sm font-semibold text-primary">✓ Authenticated</div>
 			<div className="text-sm text-muted-foreground">
 				Address: <span className="font-mono text-xs">{address}</span>
 			</div>
 			<div className="text-xs text-muted-foreground">
 				Token: <span className="font-mono">{authToken.slice(0, 20)}...</span>
 			</div>
-			<Button
-				onClick={handleDisconnect}
-				variant="destructive"
-			>
+			<Button onClick={handleDisconnect} variant="destructive">
 				Disconnect
 			</Button>
 		</div>

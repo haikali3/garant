@@ -18,9 +18,7 @@ export default function Home() {
 				{/* Header */}
 				<div className="mb-12 flex items-start justify-between">
 					<div>
-						<h1 className="text-4xl font-bold mb-2">
-							Garant
-						</h1>
+						<h1 className="text-4xl font-bold mb-2">Garant</h1>
 						<p className="text-lg text-muted-foreground">
 							Web3 trust and access platform
 						</p>
@@ -41,16 +39,10 @@ export default function Home() {
 
 						{/* Info Section */}
 						<div className="pt-6 border-t border-border">
-							<h3 className="text-sm font-semibold mb-3">
-								Supported Chains
-							</h3>
+							<h3 className="text-sm font-semibold mb-3">Supported Chains</h3>
 							<div className="flex gap-2">
-								<Badge variant="default">
-									Ethereum
-								</Badge>
-								<Badge variant="secondary">
-									Base
-								</Badge>
+								<Badge variant="default">Ethereum</Badge>
+								<Badge variant="secondary">Base</Badge>
 							</div>
 						</div>
 					</CardContent>

@@ -22,7 +22,9 @@ export function Providers({ children }: { children: ReactNode }) {
 	return (
 		<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
 			<WagmiProvider config={wagmiConfig}>
-				<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
 			</WagmiProvider>
 		</ThemeProvider>
 	);

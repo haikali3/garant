@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { getDb } from "./db";
 import { users } from "./db/schema";
 import type { Env } from "./env";
+import access from "./routes/access";
 import auth from "./routes/auth";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -26,5 +27,6 @@ app.get("/db/health", async (c) => {
 });
 
 app.route("/auth", auth);
+app.route("/access", access);
 
 export default app;
