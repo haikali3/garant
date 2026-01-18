@@ -34,7 +34,7 @@ const bodySchema = z.object({
 
 const invalidBody = (
 	c: { json: (data: unknown, status: number) => Response },
-	issues: z.ZodIssue[],
+	issues: z.core.$ZodIssue[]
 ) => {
 	const details = issues.map((issue) => ({
 		path: issue.path,
