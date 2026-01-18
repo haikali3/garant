@@ -1,11 +1,11 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { mainnet, base } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
 import { ThemeProvider } from "next-themes";
-import { ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
+import { createConfig, http, WagmiProvider } from "wagmi";
+import { base, mainnet } from "wagmi/chains";
+import { injected } from "wagmi/connectors";
 
 const wagmiConfig = createConfig({
 	chains: [mainnet, base],

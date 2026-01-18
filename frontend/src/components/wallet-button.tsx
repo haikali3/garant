@@ -1,10 +1,10 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { createSignMessage, getNonce, verifySignature } from "@/lib/auth";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { getAddress } from "viem";
+import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
+import { createSignMessage, getNonce, verifySignature } from "@/lib/auth";
 import { Button } from "./ui/button";
 
 export function WalletButton() {

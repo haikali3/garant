@@ -103,8 +103,7 @@ access.post("/check", async (c) => {
 	const normalizedAddress = getAddress(address);
 	const contractAddress = getAddress(contract);
 
-	const tokenIdValue =
-		tokenId === undefined ? null : parseBigIntInput(tokenId);
+	const tokenIdValue = tokenId === undefined ? null : parseBigIntInput(tokenId);
 	if (tokenId !== undefined && tokenIdValue === null) {
 		return c.json({ error: "invalid tokenId" }, 400);
 	}

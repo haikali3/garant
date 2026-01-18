@@ -1,7 +1,7 @@
 "use client";
 
-import { WalletButton } from "@/components/wallet-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { WalletButton } from "@/components/wallet-button";
 
 export default function Home() {
 	return (
