@@ -4,7 +4,7 @@ import { logger } from "hono/logger";
 import { getDb } from "./db";
 import { users } from "./db/schema";
 import type { Env } from "./env";
-import access from "./routes/access";
+import access from "./routes/learn-access";
 import auth from "./routes/auth";
 
 const app = new Hono<{ Bindings: Env }>();
