@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { createSignMessage, getNonce, verifySignature } from "@/lib/auth";
 import { getAddress } from "viem";
@@ -14,6 +14,7 @@ export function WalletButton() {
 	const { signMessageAsync, isPending: isSigning } = useSignMessage();
 
 	const [authToken, setAuthToken] = useState<string | null>(null);
+	const [hasAttemptedAutoSign, setHasAttemptedAutoSign] = useState(false);
 
 	const handleConnect = async () => {
 		const connector = connectors[0];
@@ -26,6 +27,7 @@ export function WalletButton() {
 	const handleDisconnect = () => {
 		disconnect();
 		setAuthToken(null);
+		setHasAttemptedAutoSign(false);
 		localStorage.removeItem("authToken");
 	};
 
@@ -52,16 +54,12 @@ export function WalletButton() {
 		},
 	});
 
-	useQuery({
-		queryKey: ["autoSign", address, nonce, authToken],
-		queryFn: () => {
-			if (isConnected && address && nonce && !authToken) {
-				sign();
-			}
-			return null;
-		},
-		enabled: isConnected && !!address && !!nonce && !authToken && !isSigning,
-	});
+	useEffect(() => {
+		if (isConnected && address && nonce && !authToken && !isSigning && !hasAttemptedAutoSign) {
+			setHasAttemptedAutoSign(true);
+			sign();
+		}
+	}, [isConnected, address, nonce, authToken, isSigning, hasAttemptedAutoSign, sign]);
 
 	if (!isConnected) {
 		return (
