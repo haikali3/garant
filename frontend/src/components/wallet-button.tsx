@@ -79,7 +79,7 @@ export function WalletButton() {
 		return (
 			<div className="flex flex-col gap-2">
 				<div className="text-sm text-muted-foreground">
-					Connected: <span className="font-mono text-xs">{address}</span>
+					Connected: <text className="font-mono text-xs">{address}</text>
 				</div>
 				{(signMutationPending || isSigning) && (
 					<div className="text-sm">Authenticating...</div>
