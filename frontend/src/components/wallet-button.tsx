@@ -14,20 +14,21 @@ export function WalletButton() {
 	const { signMessageAsync, isPending: isSigning } = useSignMessage();
 
 	const [authToken, setAuthToken] = useState<string | null>(null);
-	const [hasAttemptedAutoSign, setHasAttemptedAutoSign] = useState(false);
+	const [shouldAttemptSign, setShouldAttemptSign] = useState(false);
 
 	const handleConnect = async () => {
 		const connector = connectors[0];
 		if (!connector) {
 			return;
 		}
+		setShouldAttemptSign(true);
 		connect({ connector });
 	};
 
 	const handleDisconnect = () => {
 		disconnect();
 		setAuthToken(null);
-		setHasAttemptedAutoSign(false);
+		setShouldAttemptSign(false);
 		localStorage.removeItem("authToken");
 	};
 
@@ -55,14 +56,14 @@ export function WalletButton() {
 	});
 
 	useEffect(() => {
-		if (isConnected && address && nonce && !authToken && !isSigning && !hasAttemptedAutoSign) {
-			setHasAttemptedAutoSign(true);
+		if (shouldAttemptSign && isConnected && address && nonce && !authToken && !isSigning) {
+			setShouldAttemptSign(false);
 			sign();
 		}
-	}, [isConnected, address, nonce, authToken, isSigning, hasAttemptedAutoSign, sign]);
+	}, [shouldAttemptSign, isConnected, address, nonce, authToken, isSigning, sign]);
 
 	if (!isConnected) {
-		return (
+	return (
 			<div className="flex flex-col gap-2">
 				<Button
 					onClick={handleConnect}
