@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { createNonce, verifySiwe } from "../services/auth";
+import { createNonce, verifySiwe } from "../services/siwe";
 
-const auth = new Hono();
+const siwe = new Hono();
 
 const verifyBodySchema = z.object({
 	address: z.string().min(1),
@@ -26,7 +26,7 @@ const invalidBody = (
 };
 
 // POST /auth/nonce -> returns a nonce for a given address
-auth.post("/nonce", async (c) => {
+siwe.post("/nonce", async (c) => {
 	// Accept JSON { address, chainId }.
 	const parsed = nonceBodySchema.safeParse(
 		await c.req.json().catch(() => ({})),
@@ -37,7 +37,7 @@ auth.post("/nonce", async (c) => {
 });
 
 // POST /auth/verify -> verifies signature over message containing nonce
-auth.post("/verify", async (c) => {
+siwe.post("/verify", async (c) => {
 	const parsed = verifyBodySchema.safeParse(
 		await c.req.json().catch(() => ({})),
 	);
@@ -49,7 +49,7 @@ auth.post("/verify", async (c) => {
 });
 
 // GET /me -> returns authenticated user info
-auth.get("/me", (c) => {
+siwe.get("/me", (c) => {
 	const authz = c.req.header("authorization") || "";
 	const [, token] = authz.split(" ");
 	if (!token) return c.json({ authenticated: false }, 401);
@@ -59,4 +59,4 @@ auth.get("/me", (c) => {
 	return c.json({ authenticated: true, address: addr, token });
 });
 
-export default auth;
+export default siwe;

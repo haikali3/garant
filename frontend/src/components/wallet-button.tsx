@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getAddress } from "viem";
 import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
-import { createSignMessage, getNonce, verifySignature } from "@/lib/auth";
+import { createSignMessage, getNonce, verifySignature } from "@/lib/siwe";
 import { Button } from "./ui/button";
 
 export function WalletButton() {
