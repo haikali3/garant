@@ -9,7 +9,11 @@ export async function getNonce(address: string): Promise<string> {
 		body: JSON.stringify({ address }),
 	});
 
-	if (!res.ok) throw new Error("Failed to get nonce");
+	if (!res.ok) {
+		const error = (await res.json()) as { error?: string };
+		const errorMessage = error.error || `HTTP ${res.status}`;
+		throw new Error(`Failed to get nonce: ${errorMessage}`);
+	}
 	const data = (await res.json()) as { nonce: string };
 	return data.nonce;
 }
@@ -55,6 +59,10 @@ export async function getMe(token: string): Promise<{ authenticated: boolean; ad
 		headers: { Authorization: `Bearer ${token}` },
 	});
 
-	if (!res.ok) return { authenticated: false };
+	if (!res.ok) {
+		if (res.status === 401) return { authenticated: false };
+		const error = (await res.json()) as { error?: string };
+		throw new Error(`Failed to fetch user info: ${error.error || `HTTP ${res.status}`}`);
+	}
 	return (await res.json()) as { authenticated: boolean; address?: string };
 }
