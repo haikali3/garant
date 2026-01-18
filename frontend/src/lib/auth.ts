@@ -10,7 +10,7 @@ export async function getNonce(address: string): Promise<string> {
 	});
 
 	if (!res.ok) throw new Error("Failed to get nonce");
-	const data = await res.json();
+	const data = (await res.json()) as { nonce: string };
 	return data.nonce;
 }
 
@@ -43,11 +43,11 @@ export async function verifySignature(
 	});
 
 	if (!res.ok) {
-		const error = await res.json();
+		const error = (await res.json()) as { error?: string };
 		throw new Error(error.error || "Verification failed");
 	}
 
-	return res.json();
+	return (await res.json()) as { token: string; address: string };
 }
 
 export async function getMe(token: string): Promise<{ authenticated: boolean; address?: string }> {
@@ -56,5 +56,5 @@ export async function getMe(token: string): Promise<{ authenticated: boolean; ad
 	});
 
 	if (!res.ok) return { authenticated: false };
-	return res.json();
+	return (await res.json()) as { authenticated: boolean; address?: string };
 }
