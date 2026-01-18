@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { logger } from "hono/logger";
 import { cors } from "hono/cors";
+import { logger } from "hono/logger";
 import { getDb } from "./db";
 import { users } from "./db/schema";
 import type { Env } from "./env";

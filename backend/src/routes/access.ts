@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { z } from "zod";
 import {
 	createPublicClient,
 	erc20Abi,
@@ -9,7 +8,9 @@ import {
 	http,
 	isAddress,
 } from "viem";
+import type { Chain } from "viem/chains";
 import { base, baseSepolia, mainnet, sepolia } from "viem/chains";
+import { z } from "zod";
 import type { Env } from "../env";
 
 const access = new Hono<{ Bindings: Env }>();
@@ -69,12 +70,11 @@ const getRpcUrl = (env: Env, chainId: number) => {
 	}
 };
 
-const chainById = new Map([
-	[1, mainnet],
-	[8453, base],
-	[11155111, sepolia],
-	[84532, baseSepolia],
-]);
+const chainById = new Map<number, Chain>();
+chainById.set(1, mainnet);
+chainById.set(8453, base);
+chainById.set(11155111, sepolia);
+chainById.set(84532, baseSepolia);
 
 const getClient = (env: Env, chainId: number) => {
 	const existing = clients.get(chainId);

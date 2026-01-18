@@ -202,17 +202,19 @@ function FieldError({
 		const uniqueErrors = [
 			...new Map(errors.map((error) => [error?.message, error])).values(),
 		];
+		const messages = uniqueErrors
+			.map((error) => error?.message)
+			.filter((message): message is string => Boolean(message));
 
-		if (uniqueErrors?.length == 1) {
-			return uniqueErrors[0]?.message;
+		if (messages.length === 1) {
+			return messages[0];
 		}
 
 		return (
 			<ul className="ml-4 flex list-disc flex-col gap-1">
-				{uniqueErrors.map(
-					(error, index) =>
-						error?.message && <li key={index}>{error.message}</li>,
-				)}
+				{messages.map((message) => (
+					<li key={message}>{message}</li>
+				))}
 			</ul>
 		);
 	}, [children, errors]);
