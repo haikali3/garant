@@ -113,6 +113,7 @@ ETHEREUM_RPC_URL=https://eth.llamarpc.com
 BASE_RPC_URL=https://base.llamarpc.com
 JWT_SECRET=your-jwt-secret
 ```
+Tip: You can find public RPC URLs (mainnet/Base) at https://chainlist.org/chain/1
 
 **Frontend** (`.env.local`):
 ```
@@ -459,4 +460,3 @@ A: Access checks have a 30-second cache. If the RPC fails, cached results are us
 
 **Q: How do I add a new token for access control?**
 A: Create an access rule in the database with the token contract address and required balance. See the API documentation for examples.
-

@@ -22,6 +22,49 @@ const bodySchema = z.object({
 	tokenId: z.union([z.string().min(1), z.number().int()]).optional(),
 	minBalance: z.union([z.string().min(1), z.number().int()]).optional(),
 	recheck: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+	if (!isAddress(data.address)) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["address"],
+			message: "invalid address",
+		});
+	}
+
+	if (!isAddress(data.contract)) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["contract"],
+			message: "invalid contract",
+		});
+	}
+
+	if (data.tokenId !== undefined && parseBigIntInput(data.tokenId) === null) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["tokenId"],
+			message: "invalid tokenId",
+		});
+	}
+
+	if (
+		data.minBalance !== undefined &&
+		parseBigIntInput(data.minBalance) === null
+	) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["minBalance"],
+			message: "invalid minBalance",
+		});
+	}
+
+	if (data.standard === "erc1155" && data.tokenId === undefined) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["tokenId"],
+			message: "tokenId required for erc1155",
+		});
+	}
 });
 
 const invalidBody = (
@@ -47,27 +90,13 @@ access.get("/check", async (c) => {
 	const { address, chainId, standard, contract, tokenId, minBalance, recheck } =
 		parsed.data;
 
-	if (!isAddress(address)) return c.json({ error: "invalid address" }, 400);
-	if (!isAddress(contract)) return c.json({ error: "invalid contract" }, 400);
-
 	const normalizedAddress = getAddress(address);
 	const contractAddress = getAddress(contract);
 
 	// parse tokenId/minBalance
 	const tokenIdValue = tokenId === undefined ? null : parseBigIntInput(tokenId);
-	if (tokenId !== undefined && tokenIdValue === null) {
-		return c.json({ error: "invalid tokenId" }, 400);
-	}
-
 	const minBalanceValue =
 		minBalance === undefined ? null : parseBigIntInput(minBalance);
-	if (minBalance !== undefined && minBalanceValue === null) {
-		return c.json({ error: "invalid minBalance" }, 400);
-	}
-
-	if (standard === "erc1155" && tokenIdValue === null) {
-		return c.json({ error: "tokenId required for erc1155" }, 400);
-	}
 
 	// cache check (unless recheck)
 	const cacheKey = [
