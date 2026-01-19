@@ -1,12 +1,16 @@
-import { parse } from "dotenv";
 import { Hono } from "hono";
 import { getAddress, isAddress } from "viem";
 import { z } from "zod";
 import { parseBigIntInput } from "../lib/parse-big-int-input";
 import { getViemClient } from "../lib/viem-client";
-import { env } from "hono/adapter";
 
 const access = new Hono();
+
+const CACHE_TTL_MS = 30_000;
+const cache = new Map<
+  string,
+  { ok: boolean; balance: string; checkedAt: number; expiresAt: number }
+>();
 
 const bodySchema = z.object({
   // define the expected body schema here
@@ -69,13 +73,13 @@ access.get("/check", async (c) => {
   ].join(":");
 
   const now = Date.now();
-  const cahed = cache.get(cacheKey);
-  if (!recheck && cahed && cahed.expiresAt > now) {
+  const cached = cache.get(cacheKey);
+  if (!recheck && cached && cached.expiresAt > now) {
     return c.json({
-      ok: cahed.ok,
-      balance: cahed.balance,
+      ok: cached.ok,
+      balance: cached.balance,
       cached: true,
-      checkedAt: cahed.checkedAt,
+      checkedAt: cached.checkedAt,
       chainId,
       standard,
       contract: contractAddress,
@@ -84,7 +88,7 @@ access.get("/check", async (c) => {
     });
   }
 
-  const client = getViemClient({ env: c.env, chainId });
+  const client = getViemClient(c.env, chainId);
   if (!client) return c.json({ error: "rpc not configured" }, 400);
 
 
@@ -99,4 +103,3 @@ access.get("/check", async (c) => {
 
   return c.json({ message: "Learn Access Route is working!" });
 });
-
