@@ -8,13 +8,13 @@
 
 ## Tagline
 
-**Ownership-based trust for modern applications**
+**Verifiable intent and ownership for modern applications**
 
 ---
 
 ## 1. Overview
 
-Garant is a **Web3-enabled trust and access platform** that allows applications to verify ownership, permissions, and identity using **wallet signatures and smart contracts**, while keeping complex logic **off-chain via APIs**.
+Garant is a **Web3-enabled verification and access platform** that allows applications to verify ownership and intent using **cryptographic signatures**, while keeping complex logic **off-chain via APIs**.
 
 Garant acts as a **guarantor of access and intent**, bridging on-chain truth with off-chain systems such as databases, APIs, AI services, and payments.
 
@@ -48,9 +48,9 @@ Modern applications face three major issues:
 
 Garant provides:
 
-* Wallet-based authentication using **cryptographic signatures**
+* One-shot verification using **cryptographic signatures**
 * Smart-contract-verified ownership and permissions
-* A backend API that **guarantees access**, roles, and intent
+* A backend API that **guarantees intent**, roles, and balance truth
 * A clean developer interface for building **token-gated and ownership-aware apps**
 
 Garant does **not replace smart contracts**.
@@ -87,12 +87,12 @@ It **guarantees** that off-chain actions respect on-chain truth.
 
 ## 6. Key Features (MVP)
 
-### 6.1 Wallet Authentication
+### 6.1 Signature Verification & Intent
 
-* Sign-in with Ethereum (signature based)
+* Sign-in with Ethereum (signature based) for proof of intent
 * Nonce-based replay protection
-* One user → many wallets; one (address, chainId) wallet → one user
-* Address canonicalization: store `address` normalized (lowercase) to avoid duplicate-case collisions
+* Stateless: No permanent user sessions required
+* Address canonicalization: store `address` normalized (lowercase)
 
 ---
 
@@ -203,34 +203,10 @@ Garant is **infrastructure**, not a consumer wallet.
 
 ## 9. Data Models (High-Level)
 
-### Identity & Wallets (Multi-chain)
+### Identity & Intent
 
-Garant supports **one user → many wallets**, and **one wallet → exactly one user**.
+Garant verifies that a specific `address` on a specific `chainId` owns a resource or has authorized an action via signature. It does not manage persistent user profiles.
 
-A wallet is uniquely identified by:
-
-* `address` (EVM address)
-* `chainId` (EVM chain id)
-
-This allows the *same address* to exist across multiple chains as distinct wallet identities.
-
-### User
-
-* `id`
-* `createdAt`
-
-### Wallet
-
-* `id`
-* `userId` (FK → `users.id`)
-* `address`
-* `chainId`
-* `createdAt`
-
-Constraints:
-
-* Unique (`address`, `chainId`) to guarantee a wallet belongs to only one user
-* `userId` is not unique, so a user can link multiple wallets
 
 ### AuthNonce (Wallet Authentication)
 
@@ -264,8 +240,8 @@ Constraints:
 ### AccessAssignment
 
 * `id`
-* `userId` (FK → `users.id`)
 * `accessRuleId` (FK → `access_rules.id`)
+* `walletAddress`
 * `assignedAt`
 
 ### Indexed Contracts
@@ -291,8 +267,8 @@ Constraints:
 
 ## 10. Security Considerations
 
-* Signature verification required for all auth
-* Nonce expiration enforced
+* Signature verification required for all actions
+* Nonce absolute expiration enforced
 * Rate limiting on auth endpoints
 * Chain ID validation
 * No sensitive secrets exposed to frontend
@@ -302,9 +278,9 @@ Constraints:
 
 ## 11. MVP Success Criteria
 
-* User can log in with wallet
+* Signature is verified correctly against address
 * Backend verifies ownership correctly
-* Access is granted or denied deterministically
+* Access permissions are computed deterministically
 * Contract events are indexed correctly
 * App remains fast under RPC limits
 * Clean DX and readable codebase
@@ -324,7 +300,7 @@ Constraints:
 
 ## 13. One-Line Pitch
 
-**Garant is a trust layer that guarantees off-chain actions respect on-chain ownership.**
+**Garant is a verification layer that guarantees off-chain actions respect cryptographic truth.**
 
 ---
 
