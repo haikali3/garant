@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { erc20Abi, getAddress, isAddress } from "viem";
+import { erc20Abi, erc721Abi, erc1155Abi, getAddress, isAddress } from "viem";
 import { z } from "zod";
 import type { Env } from "../env";
 import { parseBigIntInput } from "../lib/parse-big-int-input";
@@ -65,6 +65,10 @@ access.get("/check", async (c) => {
 		return c.json({ error: "invalid minBalance" }, 400);
 	}
 
+	if (standard === "erc1155" && tokenIdValue === null) {
+		return c.json({ error: "tokenId required for erc1155" }, 400);
+	}
+
 	// cache check (unless recheck)
 	const cacheKey = [
 		chainId,
@@ -105,6 +109,41 @@ access.get("/check", async (c) => {
 			abi: erc20Abi,
 			functionName: "balanceOf",
 			args: [normalizedAddress],
+		});
+		const min = minBalanceValue ?? 1n;
+		balance = rawBalance.toString();
+		ok = rawBalance >= min;
+	}
+
+	if (standard === "erc721") {
+		if (tokenIdValue !== null) {
+			const owner = await client.readContract({
+				address: contractAddress,
+				abi: erc721Abi,
+				functionName: "ownerOf",
+				args: [tokenIdValue],
+			});
+			ok = getAddress(owner) === normalizedAddress;
+			balance = ok ? "1" : "0";
+		} else {
+			const rawBalance = await client.readContract({
+				address: contractAddress,
+				abi: erc721Abi,
+				functionName: "balanceOf",
+				args: [normalizedAddress],
+			});
+			const min = minBalanceValue ?? 1n;
+			balance = rawBalance.toString();
+			ok = rawBalance >= min;
+		}
+	}
+
+	if (standard === "erc1155") {
+		const rawBalance = await client.readContract({
+			address: contractAddress,
+			abi: erc1155Abi,
+			functionName: "balanceOf",
+			args: [normalizedAddress, tokenIdValue as bigint],
 		});
 		const min = minBalanceValue ?? 1n;
 		balance = rawBalance.toString();
