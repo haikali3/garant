@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { getDb } from "./db";
-import { users } from "./db/schema";
-import type { Env } from "./env";
-import siwe from "./routes/siwe";
-import access from "./routes/learn-access";
+import { users } from "./db/schema.ts";
+import { getDb } from "./db.ts";
+import type { Env } from "./env.ts";
+import access from "./routes/learn-access.ts";
+import siwe from "./routes/siwe.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 

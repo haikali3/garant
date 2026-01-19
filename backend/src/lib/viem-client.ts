@@ -1,6 +1,6 @@
-import type { Env } from "../env";
 import { createPublicClient, http } from "viem";
-import { Chain, mainnet, base, sepolia, baseSepolia } from "viem/chains";
+import { base, type Chain, mainnet } from "viem/chains";
+import type { Env } from "../env.ts";
 
 const clients = new Map<number, ReturnType<typeof createPublicClient>>();
 
@@ -9,18 +9,18 @@ chainById.set(1, mainnet);
 chainById.set(8453, base);
 
 export const getViemClient = (env: Env, chainId: number) => {
-  const existing = clients.get(chainId);
-  if (existing) return existing;
-  const rpcUrl = getRpcUrl(env, chainId);
-  if (!rpcUrl) return null;
-  const chain = chainById.get(chainId);
-  const client = createPublicClient({
-    chain,
-    transport: http(rpcUrl),
-  });
-  clients.set(chainId, client);
-  return client;
-}
+	const existing = clients.get(chainId);
+	if (existing) return existing;
+	const rpcUrl = getRpcUrl(env, chainId);
+	if (!rpcUrl) return null;
+	const chain = chainById.get(chainId);
+	const client = createPublicClient({
+		chain,
+		transport: http(rpcUrl),
+	});
+	clients.set(chainId, client);
+	return client;
+};
 
 const getRpcUrl = (env: Env, chainId: number) => {
 	switch (chainId) {
