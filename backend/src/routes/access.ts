@@ -30,13 +30,13 @@ const invalidBody = (
 
 // verify ownership or balance of erc20/erc721/erc1155 tokens 
 access.get("/check", async (c) => {
-  // 1. parse json body
+  // parse json body
   const parsed = bodySchema.safeParse(await c.req.json().catch(() => ({})));
 
-  // 2. validate with zod for address check
+  // validate with zod for address check
   if (!parsed.success) return invalidBody(c, parsed.error.issues);
 
-  // 3. normalized addr
+  // normalized addr
   const { address, chainId, standard, contract, tokenId, minBalance, recheck } = parsed.data;
 
 	if (!isAddress(address)) return c.json({ error: "invalid address" }, 400);
@@ -45,12 +45,17 @@ access.get("/check", async (c) => {
   const normalizedAddress = getAddress(address);
   const contractAddress = getAddress(contract);
 
+  // parse tokenId/minBalance
   const tokenIdValue = tokenId === undefined ? null : parseBigIntInput(tokenId);
   if (tokenId !== undefined && tokenIdValue === null) {
     return c.json({ error: "invalid tokenId" }, 400);
   }
 
-  // 4. computes cache key and serves cached response unless recheck is true
+
+  // cache check (unless recheck)
+  // get viem client for chainId
+  // do ERC20/721/1155 readContract
+  // cache + respond
 
 
 
