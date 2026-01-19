@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getAddress, isAddress } from "viem";
+import { erc20Abi, getAddress, isAddress } from "viem";
 import { z } from "zod";
 import type { Env } from "../env";
 import { parseBigIntInput } from "../lib/parse-big-int-input";
@@ -7,7 +7,7 @@ import { getViemClient } from "../lib/viem-client";
 
 const access = new Hono<{ Bindings: Env }>();
 
-const _CACHE_TTL_MS = 30_000;
+const CACHE_TTL_MS = 30_000;
 const cache = new Map<
 	string,
 	{ ok: boolean; balance: string; checkedAt: number; expiresAt: number }
@@ -93,10 +93,43 @@ access.get("/check", async (c) => {
 
 	const client = getViemClient(c.env, chainId);
 	if (!client) return c.json({ error: "rpc not configured" }, 400);
-
 	// get viem client for chainId
+
+	let ok = false;
+	let balance = "0";
+	
 	// do ERC20/721/1155 readContract
+	if (standard === "erc20") {
+		const rawBalance = await client.readContract({
+			address: contractAddress,
+			abi: erc20Abi,
+			functionName: "balanceOf",
+			args: [normalizedAddress],
+		});
+		const min = minBalanceValue ?? 1n;
+		balance = rawBalance.toString();
+		ok = rawBalance >= min;
+	}
 	// cache + respond
 
-	return c.json({ message: "Learn Access Route is working!" });
+	cache.set(cacheKey, {
+		ok,
+		balance,
+		checkedAt: now,
+		expiresAt: now + CACHE_TTL_MS,
+	});
+
+	return c.json({
+		ok,
+		balance,
+		cached: false,
+		checkedAt: now,
+		chainId,
+		standard,
+		contract: contractAddress,
+		address: normalizedAddress,
+		tokenId: tokenIdValue?.toString(),
+	});
 });
+
+export default access;
