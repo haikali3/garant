@@ -61,10 +61,6 @@ const getRpcUrl = (env: Env, chainId: number) => {
 			return env.RPC_URL_MAINNET;
 		case 8453:
 			return env.RPC_URL_BASE;
-		case 11155111:
-			return env.RPC_URL_SEPOLIA;
-		case 84532:
-			return env.RPC_URL_BASE_SEPOLIA;
 		default:
 			return undefined;
 	}

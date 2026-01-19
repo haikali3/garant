@@ -2,7 +2,9 @@ import { parse } from "dotenv";
 import { Hono } from "hono";
 import { getAddress, isAddress } from "viem";
 import { z } from "zod";
-import { parseBigIntInput } from "../helper/parse-big-int-input";
+import { parseBigIntInput } from "../lib/parse-big-int-input";
+import { getViemClient } from "../lib/viem-client";
+import { env } from "hono/adapter";
 
 const access = new Hono();
 
@@ -51,8 +53,43 @@ access.get("/check", async (c) => {
     return c.json({ error: "invalid tokenId" }, 400);
   }
 
+  const minBalanceValue = minBalance === undefined ? null : parseBigIntInput(minBalance);
+  if (minBalance !== undefined && minBalanceValue === null) {
+    return c.json({ error: "invalid minBalance" }, 400);
+  }
 
   // cache check (unless recheck)
+  const cacheKey = [
+    chainId,
+    standard,
+    contractAddress,
+    normalizedAddress,
+    tokenIdValue?.toString() ?? "missing tokenIdValue",
+    minBalanceValue?.toString() ?? "missing minBalanceValue",
+  ].join(":");
+
+  const now = Date.now();
+  const cahed = cache.get(cacheKey);
+  if (!recheck && cahed && cahed.expiresAt > now) {
+    return c.json({
+      ok: cahed.ok,
+      balance: cahed.balance,
+      cached: true,
+      checkedAt: cahed.checkedAt,
+      chainId,
+      standard,
+      contract: contractAddress,
+      address: normalizedAddress,
+      tokenId: tokenIdValue?.toString(),
+    });
+  }
+
+  const client = getViemClient({ env: c.env, chainId });
+  if (!client) return c.json({ error: "rpc not configured" }, 400);
+
+
+
+
   // get viem client for chainId
   // do ERC20/721/1155 readContract
   // cache + respond

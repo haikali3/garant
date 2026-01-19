@@ -1,7 +1,7 @@
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { generateNonce, SiweMessage } from "siwe";
 import { getAddress, isHex } from "viem";
-import { expiresAt, normalizeAddress, nowMs } from "../helper/helper-auth";
+import { expiresAt, normalizeAddress, nowMs } from "../lib/helper-auth";
 
 export const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
