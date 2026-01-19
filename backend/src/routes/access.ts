@@ -7,7 +7,7 @@ import { getViemClient } from "../lib/viem-client";
 
 const access = new Hono<{ Bindings: Env }>();
 
-const CACHE_TTL_MS = 30_000;
+const _CACHE_TTL_MS = 30_000;
 const cache = new Map<
 	string,
 	{ ok: boolean; balance: string; checkedAt: number; expiresAt: number }
