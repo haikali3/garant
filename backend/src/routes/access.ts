@@ -3,8 +3,9 @@ import { getAddress, isAddress } from "viem";
 import { z } from "zod";
 import { parseBigIntInput } from "../lib/parse-big-int-input";
 import { getViemClient } from "../lib/viem-client";
+import type { Env } from "../env";
 
-const access = new Hono();
+const access = new Hono<{ Bindings: Env }>();
 
 const CACHE_TTL_MS = 30_000;
 const cache = new Map<
