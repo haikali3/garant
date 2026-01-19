@@ -1,9 +1,10 @@
 import { Hono } from "hono";
-import { erc20Abi, erc721Abi, erc1155Abi, getAddress, isAddress } from "viem";
+import { getAddress, isAddress } from "viem";
 import { z } from "zod";
 import type { Env } from "../env";
 import { parseBigIntInput } from "../lib/parse-big-int-input";
 import { getViemClient } from "../lib/viem-client";
+import { checkTokenBalance } from "../services/token-checker";
 
 const access = new Hono<{ Bindings: Env }>();
 
@@ -13,59 +14,61 @@ const cache = new Map<
 	{ ok: boolean; balance: string; checkedAt: number; expiresAt: number }
 >();
 
-const bodySchema = z.object({
-	// define the expected body schema here
-	address: z.string().min(1),
-	chainId: z.number().int(),
-	standard: z.enum(["erc20", "erc721", "erc1155"]),
-	contract: z.string().min(1),
-	tokenId: z.union([z.string().min(1), z.number().int()]).optional(),
-	minBalance: z.union([z.string().min(1), z.number().int()]).optional(),
-	recheck: z.boolean().optional(),
-}).superRefine((data, ctx) => {
-	if (!isAddress(data.address)) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ["address"],
-			message: "invalid address",
-		});
-	}
+const bodySchema = z
+	.object({
+		// define the expected body schema here
+		address: z.string().min(1),
+		chainId: z.number().int(),
+		standard: z.enum(["erc20", "erc721", "erc1155"]),
+		contract: z.string().min(1),
+		tokenId: z.union([z.string().min(1), z.number().int()]).optional(),
+		minBalance: z.union([z.string().min(1), z.number().int()]).optional(),
+		recheck: z.boolean().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (!isAddress(data.address)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["address"],
+				message: "invalid address",
+			});
+		}
 
-	if (!isAddress(data.contract)) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ["contract"],
-			message: "invalid contract",
-		});
-	}
+		if (!isAddress(data.contract)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["contract"],
+				message: "invalid contract",
+			});
+		}
 
-	if (data.tokenId !== undefined && parseBigIntInput(data.tokenId) === null) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ["tokenId"],
-			message: "invalid tokenId",
-		});
-	}
+		if (data.tokenId !== undefined && parseBigIntInput(data.tokenId) === null) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["tokenId"],
+				message: "invalid tokenId",
+			});
+		}
 
-	if (
-		data.minBalance !== undefined &&
-		parseBigIntInput(data.minBalance) === null
-	) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ["minBalance"],
-			message: "invalid minBalance",
-		});
-	}
+		if (
+			data.minBalance !== undefined &&
+			parseBigIntInput(data.minBalance) === null
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["minBalance"],
+				message: "invalid minBalance",
+			});
+		}
 
-	if (data.standard === "erc1155" && data.tokenId === undefined) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ["tokenId"],
-			message: "tokenId required for erc1155",
-		});
-	}
-});
+		if (data.standard === "erc1155" && data.tokenId === undefined) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["tokenId"],
+				message: "tokenId required for erc1155",
+			});
+		}
+	});
 
 const invalidBody = (
 	c: { json: (data: unknown, status: number) => Response },
@@ -126,58 +129,16 @@ access.get("/check", async (c) => {
 
 	const client = getViemClient(c.env, chainId);
 	if (!client) return c.json({ error: "rpc not configured" }, 400);
-	// get viem client for chainId
 
-	let ok = false;
-	let balance = "0";
-
-	// do ERC20/721/1155 readContract
-	if (standard === "erc20") {
-		const rawBalance = await client.readContract({
-			address: contractAddress,
-			abi: erc20Abi,
-			functionName: "balanceOf",
-			args: [normalizedAddress],
-		});
-		const min = minBalanceValue ?? 1n;
-		balance = rawBalance.toString();
-		ok = rawBalance >= min;
-	}
-
-	if (standard === "erc721") {
-		if (tokenIdValue !== null) {
-			const owner = await client.readContract({
-				address: contractAddress,
-				abi: erc721Abi,
-				functionName: "ownerOf",
-				args: [tokenIdValue],
-			});
-			ok = getAddress(owner) === normalizedAddress;
-			balance = ok ? "1" : "0";
-		} else {
-			const rawBalance = await client.readContract({
-				address: contractAddress,
-				abi: erc721Abi,
-				functionName: "balanceOf",
-				args: [normalizedAddress],
-			});
-			const min = minBalanceValue ?? 1n;
-			balance = rawBalance.toString();
-			ok = rawBalance >= min;
-		}
-	}
-
-	if (standard === "erc1155") {
-		const rawBalance = await client.readContract({
-			address: contractAddress,
-			abi: erc1155Abi,
-			functionName: "balanceOf",
-			args: [normalizedAddress, tokenIdValue as bigint],
-		});
-		const min = minBalanceValue ?? 1n;
-		balance = rawBalance.toString();
-		ok = rawBalance >= min;
-	}
+	// Check token balance using service layer
+	const { ok, balance } = await checkTokenBalance(
+		standard,
+		client,
+		contractAddress,
+		normalizedAddress,
+		tokenIdValue,
+		minBalanceValue,
+	);
 	// cache + respond
 
 	cache.set(cacheKey, {
