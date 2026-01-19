@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { getAddress } from "viem";
 import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
 import { createSignMessage, getNonce, verifySignature } from "@/lib/siwe";
@@ -9,77 +9,56 @@ import { Button } from "./ui/button";
 
 export function WalletButton() {
 	const { address, isConnected } = useAccount();
-	const { connect, connectors, isPending: isConnecting } = useConnect();
+	const { connectAsync, connectors, isPending: isConnecting } = useConnect();
 	const { disconnect } = useDisconnect();
 	const { signMessageAsync, isPending: isSigning } = useSignMessage();
 
 	const [authToken, setAuthToken] = useState<string | null>(null);
-	const [shouldAttemptSign, setShouldAttemptSign] = useState(false);
 
 	const handleConnect = async () => {
 		const connector = connectors[0];
 		if (!connector) {
 			return;
 		}
-		setShouldAttemptSign(true);
-		connect({ connector });
+		const data = await connectAsync({ connector });
+		const connectedAddress = data.accounts?.[0];
+		if (connectedAddress) {
+			authenticate(connectedAddress);
+		}
 	};
 
 	const handleDisconnect = () => {
 		disconnect();
 		setAuthToken(null);
-		setShouldAttemptSign(false);
-		localStorage.removeItem("authToken");
 	};
 
-	const { data: nonce } = useQuery({
-		queryKey: ["nonce", address],
-		queryFn: () => (address ? getNonce(address) : Promise.reject()),
-		enabled: !!address && !authToken,
-		staleTime: 10000,
-	});
+	const handleAuthenticate = () => {
+		if (address) {
+			authenticate(address);
+		}
+	};
 
 	const {
-		mutate: sign,
-		isPending: signMutationPending,
-		error: signError,
+		mutate: authenticate,
+		isPending: isAuthenticating,
+		error: authError,
 	} = useMutation({
-		mutationFn: async () => {
-			if (!address || !nonce) throw new Error("Missing address or nonce");
-
-			const message = await createSignMessage(getAddress(address), nonce);
+		mutationFn: async (walletAddress: string) => {
+			const nonce = await getNonce(walletAddress);
+			const message = await createSignMessage(getAddress(walletAddress), nonce);
 			const signature = await signMessageAsync({ message });
-			const { token } = await verifySignature(address, message, signature);
+			const { token } = await verifySignature(
+				walletAddress,
+				message,
+				signature,
+			);
 
 			return { token };
 		},
 		onSuccess: (data) => {
 			setAuthToken(data.token);
-			localStorage.setItem("authToken", data.token);
 		},
 	});
-
-	useEffect(() => {
-		if (
-			shouldAttemptSign &&
-			isConnected &&
-			address &&
-			nonce &&
-			!authToken &&
-			!isSigning
-		) {
-			setShouldAttemptSign(false);
-			sign();
-		}
-	}, [
-		shouldAttemptSign,
-		isConnected,
-		address,
-		nonce,
-		authToken,
-		isSigning,
-		sign,
-	]);
 
 	if (!isConnected) {
 		return (
@@ -92,20 +71,24 @@ export function WalletButton() {
 	}
 
 	if (!authToken) {
+		const canAuthenticate = !!address && !isSigning && !isAuthenticating;
 		return (
 			<div className="flex flex-col gap-2">
 				<div className="text-sm text-muted-foreground">
-					Connected: <text className="font-mono text-xs">{address}</text>
+					Connected: <p className="font-mono text-xs">{address}</p>
 				</div>
-				{(signMutationPending || isSigning) && (
+				{(isAuthenticating || isSigning) && (
 					<div className="text-sm">Authenticating...</div>
+				)}
+				{canAuthenticate && (
+					<Button onClick={handleAuthenticate}>Authenticate</Button>
 				)}
 				<Button onClick={handleDisconnect} variant="outline">
 					Disconnect
 				</Button>
-				{signError && (
+				{authError && (
 					<p className="text-destructive text-sm">
-						{signError.message || "Authentication failed"}
+						{authError.message || "Authentication failed"}
 					</p>
 				)}
 			</div>

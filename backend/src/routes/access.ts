@@ -97,7 +97,7 @@ access.get("/check", async (c) => {
 
 	let ok = false;
 	let balance = "0";
-	
+
 	// do ERC20/721/1155 readContract
 	if (standard === "erc20") {
 		const rawBalance = await client.readContract({
