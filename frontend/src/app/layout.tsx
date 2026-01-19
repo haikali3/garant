@@ -31,7 +31,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={jetbrainsMono.variable} suppressHydrationWarning>
 			<head>
-				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
+				<link rel="icon" href="/favicon.png" type="image/png" />
 			</head>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}

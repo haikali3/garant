@@ -1,5 +1,7 @@
 # Garant
 
+<img src="frontend/public/logo.png" alt="Garant Logo" width="120" />
+
 **Ownership-based trust for modern applications**
 
 Garant is a Web3-enabled trust and access control platform that bridges on-chain and off-chain systems. It provides wallet-based authentication, cryptographic identity verification, and blockchain-backed access control—enabling developers to build applications where user permissions are secured by smart contracts.
