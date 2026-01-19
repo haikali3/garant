@@ -100,7 +100,7 @@ It **guarantees** that off-chain actions respect on-chain truth.
 ### 6.2 Ownership Verification
 
 * Verify ERC-20, ERC-721, ERC-1155 ownership
-* Chain-agnostic (EVM)
+* Chain-supported: Ethereum Mainnet, Base, Sepolia Testnet
 * Cached verification via API
 * Optional real-time recheck on critical actions
 
@@ -316,7 +316,7 @@ Constraints:
 
 ## 12. Future Extensions
 
-* Multi-chain support
+* Multi-chain support (Additional EVM chains)
 * Gasless transactions
 * Fine-grained role hierarchies
 * OAuth bridge (wallet + Google)

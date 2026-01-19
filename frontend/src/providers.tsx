@@ -4,15 +4,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useMemo } from "react";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { base, mainnet } from "wagmi/chains";
+import { base, mainnet, sepolia } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 
 const wagmiConfig = createConfig({
-	chains: [mainnet, base],
+	chains: [mainnet, base, sepolia],
 	connectors: [injected()],
 	transports: {
 		[mainnet.id]: http(),
 		[base.id]: http(),
+		[sepolia.id]: http(),
 	},
 });
 

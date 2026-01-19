@@ -6,7 +6,7 @@ import { expiresAt, normalizeAddress, nowMs } from "../lib/helper-auth";
 export const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 const nonces = new Map<string, { nonce: string; expiresAt: number }>();
-const allowedChains = new Set([1, 8453]); // eth mainnet and base
+const allowedChains = new Set([1, 8453, 11155111]); // Ethereum Mainnet, Base, Sepolia Testnet
 const allowedDomain = "localhost";
 const allowedUri = "http://localhost:8787";
 
