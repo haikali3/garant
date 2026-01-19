@@ -11,7 +11,6 @@ const access = new Hono<{ Bindings: Env }>();
 
 const CACHE_TTL_SECONDS = 30; // Redis uses seconds for set EX
 
-
 const bodySchema = z
 	.object({
 		// define the expected body schema here
@@ -26,7 +25,7 @@ const bodySchema = z
 	.superRefine((data, ctx) => {
 		if (!isAddress(data.address)) {
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: "custom",
 				path: ["address"],
 				message: "invalid address",
 			});
@@ -34,7 +33,7 @@ const bodySchema = z
 
 		if (!isAddress(data.contract)) {
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: "custom",
 				path: ["contract"],
 				message: "invalid contract",
 			});
@@ -42,7 +41,7 @@ const bodySchema = z
 
 		if (data.tokenId !== undefined && parseBigIntInput(data.tokenId) === null) {
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: "custom",
 				path: ["tokenId"],
 				message: "invalid tokenId",
 			});
@@ -53,7 +52,7 @@ const bodySchema = z
 			parseBigIntInput(data.minBalance) === null
 		) {
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: "custom",
 				path: ["minBalance"],
 				message: "invalid minBalance",
 			});
@@ -61,7 +60,7 @@ const bodySchema = z
 
 		if (data.standard === "erc1155" && data.tokenId === undefined) {
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: "custom",
 				path: ["tokenId"],
 				message: "tokenId required for erc1155",
 			});
