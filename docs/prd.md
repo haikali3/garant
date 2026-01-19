@@ -91,7 +91,6 @@ It **guarantees** that off-chain actions respect on-chain truth.
 
 * Sign-in with Ethereum (signature based)
 * Nonce-based replay protection
-* JWT session issued by backend
 * One user → many wallets; one (address, chainId) wallet → one user
 * Address canonicalization: store `address` normalized (lowercase) to avoid duplicate-case collisions
 
@@ -184,7 +183,6 @@ Garant is **infrastructure**, not a consumer wallet.
 * Cloudflare D1 (SQLite)
 * Drizzle ORM (SQLite driver)
 * Redis (rate limiting, caching)
-* JWT-based auth
 * Cloudflare Workers deployment
 
 ### Smart Contracts
@@ -248,7 +246,6 @@ Constraints:
 
 * `id`
 * `userId` (FK → `users.id`)
-* `jti` (JWT id)
 * `createdAt`
 * `expiresAt`
 * `revokedAt` (optional)
