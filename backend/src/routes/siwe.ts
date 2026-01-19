@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Env } from "../env";
 import { createNonce, verifySiwe } from "../services/siwe";
 
-const siwe = new Hono();
+const siwe = new Hono<{ Bindings: Env }>();
 
 const verifyBodySchema = z.object({
 	address: z.string().min(1),
@@ -32,7 +33,7 @@ siwe.post("/nonce", async (c) => {
 		await c.req.json().catch(() => ({})),
 	);
 	if (!parsed.success) return invalidBody(c, parsed.error.issues);
-	const { nonce } = createNonce(parsed.data.address);
+	const { nonce } = await createNonce(c.env, parsed.data.address);
 	return c.json({ nonce });
 });
 
@@ -43,7 +44,7 @@ siwe.post("/verify", async (c) => {
 	);
 	if (!parsed.success) return invalidBody(c, parsed.error.issues);
 
-	const result = await verifySiwe(parsed.data);
+	const result = await verifySiwe(c.env, parsed.data);
 	if (!result.ok) return c.json({ error: result.error }, result.status);
 	return c.json({ ok: true, token: result.token, address: result.address });
 });

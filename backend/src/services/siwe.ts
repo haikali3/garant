@@ -2,10 +2,12 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { generateNonce, SiweMessage } from "siwe";
 import { getAddress, isHex } from "viem";
 import { expiresAt, normalizeAddress, nowMs } from "../lib/helper-auth";
+import { getRedisClient } from "../redis";
+import type { Env } from "../env";
 
-export const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// Redis TTL for nonces (5 minutes)
+export const NONCE_TTL_SECONDS = 5 * 60;
 
-const nonces = new Map<string, { nonce: string; expiresAt: number }>();
 const allowedChains = new Set([1, 8453, 11155111]); // Ethereum Mainnet, Base, Sepolia Testnet
 const allowedDomain = "localhost";
 const allowedUri = "http://localhost:8787";
@@ -20,17 +22,24 @@ type VerifyResult =
 	| { ok: true; token: string; address: string }
 	| { ok: false; status: ContentfulStatusCode; error: string };
 
-export const createNonce = (
+export const createNonce = async (
+	env: Env,
 	address: string,
-): { address: string; nonce: string } => {
+): Promise<{ address: string; nonce: string }> => {
 	const addr = normalizeAddress(address);
 	const nonce = generateNonce();
-	const now = nowMs();
-	nonces.set(addr, { nonce, expiresAt: expiresAt(now, NONCE_TTL_MS) });
+	const redis = getRedisClient(env);
+
+	const cacheKey = `nonce:${addr}`;
+	await redis.set(cacheKey, nonce, { ex: NONCE_TTL_SECONDS });
+
 	return { address: addr, nonce };
 };
 
-export const verifySiwe = async (input: VerifyInput): Promise<VerifyResult> => {
+export const verifySiwe = async (
+	env: Env,
+	input: VerifyInput,
+): Promise<VerifyResult> => {
 	const { address, message, signature } = input;
 
 	if (!isHex(signature)) {
@@ -38,12 +47,12 @@ export const verifySiwe = async (input: VerifyInput): Promise<VerifyResult> => {
 	}
 
 	const addr = normalizeAddress(address);
-	const entry = nonces.get(addr);
-	if (!entry) return { ok: false, status: 400, error: "nonce not found" };
-	if (entry.expiresAt < nowMs()) {
-		nonces.delete(addr);
-		return { ok: false, status: 400, error: "nonce expired" };
-	}
+	const redis = getRedisClient(env);
+
+	const cacheKey = `nonce:${addr}`;
+	const storedNonce = await redis.get<string>(cacheKey);
+
+	if (!storedNonce) return { ok: false, status: 400, error: "nonce not found" };
 
 	let siweMsg: SiweMessage;
 	try {
@@ -53,7 +62,7 @@ export const verifySiwe = async (input: VerifyInput): Promise<VerifyResult> => {
 		return { ok: false, status: 400, error: "invalid siwe message" };
 	}
 
-	if (siweMsg.nonce !== entry.nonce) {
+	if (siweMsg.nonce !== storedNonce) {
 		return { ok: false, status: 400, error: "nonce mismatch" };
 	}
 	if (!allowedChains.has(Number(siweMsg.chainId))) {
@@ -93,8 +102,8 @@ export const verifySiwe = async (input: VerifyInput): Promise<VerifyResult> => {
 		return { ok: false, status: 500, error: "verification failed" };
 	}
 
-	const token = `${addr}:${entry.nonce}`;
-	nonces.delete(addr);
+	const token = `${addr}:${storedNonce}`;
+	await redis.del(cacheKey);
 
 	return { ok: true, token, address: addr };
 };
