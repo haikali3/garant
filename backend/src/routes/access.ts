@@ -4,15 +4,13 @@ import { z } from "zod";
 import type { Env } from "../env";
 import { parseBigIntInput } from "../lib/parse-big-int-input";
 import { getViemClient } from "../lib/viem-client";
+import { getRedisClient } from "../redis";
 import { checkTokenBalance } from "../services/token-checker";
 
 const access = new Hono<{ Bindings: Env }>();
 
-const CACHE_TTL_MS = 30_000;
-const cache = new Map<
-	string,
-	{ ok: boolean; balance: string; checkedAt: number; expiresAt: number }
->();
+const CACHE_TTL_SECONDS = 30; // Redis uses seconds for set EX
+
 
 const bodySchema = z
 	.object({
@@ -101,36 +99,41 @@ access.get("/check", async (c) => {
 	const minBalanceValue =
 		minBalance === undefined ? null : parseBigIntInput(minBalance);
 
-	// cache check (unless recheck)
-	const cacheKey = [
+	// cache key construction
+	const cacheKey = `access_check:${[
 		chainId,
 		standard,
 		contractAddress,
 		normalizedAddress,
-		tokenIdValue?.toString() ?? "missing tokenIdValue",
-		minBalanceValue?.toString() ?? "missing minBalanceValue",
-	].join(":");
+		tokenIdValue?.toString() ?? "none",
+		minBalanceValue?.toString() ?? "none",
+	].join(":")}`;
 
+	const redis = getRedisClient(c.env);
 	const now = Date.now();
-	const cached = cache.get(cacheKey);
-	if (!recheck && cached && cached.expiresAt > now) {
-		return c.json({
-			ok: cached.ok,
-			balance: cached.balance,
-			cached: true,
-			checkedAt: cached.checkedAt,
-			chainId,
-			standard,
-			contract: contractAddress,
-			address: normalizedAddress,
-			tokenId: tokenIdValue?.toString(),
-		});
+
+	// 1. Check Redis Cache
+	if (!recheck) {
+		const cached = await redis.get<{ ok: boolean; balance: string; checkedAt: number }>(cacheKey);
+		if (cached) {
+			return c.json({
+				ok: cached.ok,
+				balance: cached.balance,
+				cached: true,
+				checkedAt: cached.checkedAt,
+				chainId,
+				standard,
+				contract: contractAddress,
+				address: normalizedAddress,
+				tokenId: tokenIdValue?.toString(),
+			});
+		}
 	}
 
 	const client = getViemClient(c.env, chainId);
 	if (!client) return c.json({ error: "rpc not configured" }, 400);
 
-	// Check token balance using service layer
+	// 2. Fetch Fresh Data (Blockchain)
 	const { ok, balance } = await checkTokenBalance(
 		standard,
 		client,
@@ -139,14 +142,15 @@ access.get("/check", async (c) => {
 		tokenIdValue,
 		minBalanceValue,
 	);
-	// cache + respond
 
-	cache.set(cacheKey, {
+	// 3. Store in Redis with TTL
+	const cacheData = {
 		ok,
 		balance,
 		checkedAt: now,
-		expiresAt: now + CACHE_TTL_MS,
-	});
+	};
+
+	await redis.set(cacheKey, cacheData, { ex: CACHE_TTL_SECONDS });
 
 	return c.json({
 		ok,
