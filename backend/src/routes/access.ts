@@ -133,7 +133,7 @@ access.get("/check", async (c) => {
 	if (!client) return c.json({ error: "rpc not configured" }, 400);
 
 	// 2. Fetch Fresh Data (Blockchain)
-	const { ok, balance } = await checkTokenBalance(
+	const { ok, balance, error } = await checkTokenBalance(
 		standard,
 		client,
 		contractAddress,
@@ -141,6 +141,21 @@ access.get("/check", async (c) => {
 		tokenIdValue,
 		minBalanceValue,
 	);
+
+	if (error) {
+		return c.json({
+			ok: false,
+			balance,
+			error,
+			cached: false,
+			checkedAt: now,
+			chainId,
+			standard,
+			contract: contractAddress,
+			address: normalizedAddress,
+			tokenId: tokenIdValue?.toString(),
+		}, 400);
+	}
 
 	// 3. Store in Redis with TTL
 	const cacheData = {
