@@ -1,6 +1,6 @@
 # Garant
 
-<img src="frontend/public/logo.png" alt="Garant Logo" width="120" />
+<img src="frontend/public/logo.png" alt="Garant Logo" width="50" />
 
 **Ownership-based trust for modern applications**
 
