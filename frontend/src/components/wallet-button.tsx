@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAddress } from "viem";
 import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
 import { createSignMessage, getNonce, verifySignature } from "@/lib/siwe";
@@ -18,6 +18,11 @@ export function WalletButton({
 	const { signMessageAsync, isPending: isSigning } = useSignMessage();
 
 	const [authToken, setAuthToken] = useState<string | null>(null);
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	const handleConnect = async () => {
 		const connector = connectors[0];
@@ -66,10 +71,10 @@ export function WalletButton({
 		},
 	});
 
-	if (!isConnected) {
+	if (!mounted || !isConnected) {
 		return (
 			<div className="flex flex-col gap-2">
-				<Button onClick={handleConnect} disabled={isConnecting}>
+				<Button onClick={handleConnect} disabled={isConnecting || !mounted}>
 					{isConnecting ? "Connecting..." : "Connect Wallet"}
 				</Button>
 			</div>
@@ -81,7 +86,7 @@ export function WalletButton({
 		return (
 			<div className="flex flex-col gap-2">
 				<div className="text-sm text-muted-foreground">
-					Connected: <p className="font-mono text-xs">{address}</p>
+					Connected: <div className="font-mono text-xs">{address}</div>
 				</div>
 				{(isAuthenticating || isSigning) && (
 					<div className="text-sm">Authenticating...</div>
