@@ -31,7 +31,7 @@ export default function Home() {
 					</div>
 					<div className="flex items-center gap-4">
 						<ThemeToggle />
-						<a href="https://github.com" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+						<a href="https://github.com/haikali3/garant" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
 							<Github className="w-5 h-5" />
 						</a>
 					</div>
