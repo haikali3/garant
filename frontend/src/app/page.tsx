@@ -17,7 +17,7 @@ export default function Home() {
 		<div className="min-h-screen bg-background">
 			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 				{/* Navbar */}
-				<div className="flex items-center justify-between mb-16 backdrop-blur-md bg-background/30 p-4 rounded-2xl border border-white/5">
+				<div className="flex items-center justify-between mb-2 backdrop-blur-md bg-background/30 p-4 rounded-2xl border border-white/5">
 					<div className="flex items-center gap-3">
 						<div className="bg-primary p-2 rounded-xl">
 							<Shield className="w-6 h-6 text-primary-foreground" />
@@ -44,7 +44,7 @@ export default function Home() {
 							<h2 className="text-4xl font-extrabold tracking-tighter sm:text-5xl">
 								The <span className="text-primary">Guarantor</span> of Truth.
 							</h2>
-							<p className="text-lg text-muted-foreground leading-relaxed">
+							<p className="text-md text-muted-foreground leading-relaxed">
 								Garant bridges on-chain ownership with off-chain systems using cryptographic proof. 
 								Verify assets, enforce rules, and secure resources instantly.
 							</p>
