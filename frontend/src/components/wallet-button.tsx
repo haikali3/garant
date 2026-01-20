@@ -7,8 +7,12 @@ import { useAccount, useConnect, useDisconnect, useSignMessage } from "wagmi";
 import { createSignMessage, getNonce, verifySignature } from "@/lib/siwe";
 import { Button } from "./ui/button";
 
-export function WalletButton() {
-	const { address, isConnected } = useAccount();
+export function WalletButton({ 
+	onAuthSuccess 
+}: { 
+	onAuthSuccess?: (token: string, address: string, chainId: number) => void 
+}) {
+	const { address, isConnected, chainId } = useAccount();
 	const { connectAsync, connectors, isPending: isConnecting } = useConnect();
 	const { disconnect } = useDisconnect();
 	const { signMessageAsync, isPending: isSigning } = useSignMessage();
@@ -22,8 +26,9 @@ export function WalletButton() {
 		}
 		const data = await connectAsync({ connector });
 		const connectedAddress = data.accounts?.[0];
-		if (connectedAddress) {
-			authenticate(connectedAddress);
+		const connectedChainId = data.chainId;
+		if (connectedAddress && connectedChainId) {
+			authenticate({ address: connectedAddress, chainId: connectedChainId });
 		}
 	};
 
@@ -33,8 +38,8 @@ export function WalletButton() {
 	};
 
 	const handleAuthenticate = () => {
-		if (address) {
-			authenticate(address);
+		if (address && chainId) {
+			authenticate({ address, chainId });
 		}
 	};
 
@@ -43,9 +48,9 @@ export function WalletButton() {
 		isPending: isAuthenticating,
 		error: authError,
 	} = useMutation({
-		mutationFn: async (walletAddress: string) => {
+		mutationFn: async ({ address: walletAddress, chainId: walletChainId }: { address: string; chainId: number }) => {
 			const nonce = await getNonce(walletAddress);
-			const message = await createSignMessage(getAddress(walletAddress), nonce);
+			const message = await createSignMessage(getAddress(walletAddress), nonce, walletChainId);
 			const signature = await signMessageAsync({ message });
 			const { token } = await verifySignature(
 				walletAddress,
@@ -53,6 +58,7 @@ export function WalletButton() {
 				signature,
 			);
 
+			onAuthSuccess?.(token, walletAddress, walletChainId);
 			return { token };
 		},
 		onSuccess: (data) => {

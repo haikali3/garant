@@ -8,9 +8,9 @@ import type { Env } from "../env";
 // Redis TTL for nonces (5 minutes)
 export const NONCE_TTL_SECONDS = 5 * 60;
 
-const allowedChains = new Set([1, 8453, 11155111]); // Ethereum Mainnet, Base, Sepolia Testnet
+const allowedChains = new Set([1, 8453, 11155111, 84532]); // Ethereum Mainnet, Base, Sepolia, Base Sepolia
 const allowedDomain = "localhost";
-const allowedUri = "http://localhost:8787";
+const allowedUris = ["http://localhost:8787", "http://localhost:3000"];
 
 type VerifyInput = {
 	address: string;
@@ -80,7 +80,7 @@ export const verifySiwe = async (
 	if (siweMsg.domain !== allowedDomain) {
 		return { ok: false, status: 400, error: "invalid domain" };
 	}
-	if (siweMsg.uri !== allowedUri) {
+	if (!allowedUris.includes(siweMsg.uri)) {
 		return { ok: false, status: 400, error: "invalid uri" };
 	}
 

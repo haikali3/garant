@@ -79,7 +79,7 @@ const invalidBody = (
 };
 
 // verify ownership or balance of erc20/erc721/erc1155 tokens
-access.get("/check", async (c) => {
+access.post("/check", async (c) => {
 	// parse json body
 	const parsed = bodySchema.safeParse(await c.req.json().catch(() => ({})));
 

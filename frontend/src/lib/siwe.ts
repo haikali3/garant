@@ -21,14 +21,15 @@ export async function getNonce(address: string): Promise<string> {
 export async function createSignMessage(
 	address: string,
 	nonce: string,
+	chainId: number,
 ): Promise<string> {
 	const msg = new SiweMessage({
-		domain: "localhost",
+		domain: window.location.hostname,
 		address,
 		statement: "Sign in to Garant",
-		uri: "http://localhost:8787",
+		uri: window.location.origin,
 		version: "1",
-		chainId: 1,
+		chainId,
 		nonce,
 	});
 
