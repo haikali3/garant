@@ -42,7 +42,7 @@ export default function Home() {
 					<div className="lg:col-span-5 space-y-8 py-4">
 						<div className="space-y-4">
 							<h2 className="text-4xl font-extrabold tracking-tighter sm:text-5xl">
-								The <span className="text-primary italic">Guarantor</span> of Truth.
+								The <span className="text-primary">Guarantor</span> of Truth.
 							</h2>
 							<p className="text-lg text-muted-foreground leading-relaxed">
 								Garant bridges on-chain ownership with off-chain systems using cryptographic proof. 
@@ -77,14 +77,14 @@ export default function Home() {
 						{!authState ? (
 							<div className="relative group">
 								<div className="absolute -inset-1 bg-primary/20 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-								<div className="relative bg-background border border-white/10 rounded-3xl p-8">
-									<div className="mb-8 overflow-hidden rounded-xl bg-muted/50 aspect-video flex items-center justify-center p-8 text-center">
-										<div className="space-y-2">
-											<div className="w-12 h-12 bg-primary/20 text-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-												<Shield className="w-6 h-6" />
+								<div className="relative bg-background border border-white/10 rounded-2xl p-6">
+									<div className="mb-4 overflow-hidden rounded-lg bg-muted/50 py-6 flex items-center justify-center text-center">
+										<div className="space-y-1">
+											<div className="w-8 h-8 bg-primary/20 text-primary rounded-full flex items-center justify-center mx-auto mb-2">
+												<Shield className="w-4 h-4" />
 											</div>
-											<h3 className="font-bold">Awaiting Connection</h3>
-											<p className="text-xs text-muted-foreground max-w-[200px]">Connect your Sepolia wallet to begin verification.</p>
+											<h3 className="font-bold text-sm">Awaiting Connection</h3>
+											<p className="text-[10px] text-muted-foreground max-w-[160px]">Connect Sepolia wallet to begin.</p>
 										</div>
 									</div>
 									<WalletButton 

@@ -96,7 +96,6 @@ export function AccessGate({ token, address, chainId }: AccessGateProps) {
       </div>
 
       <Card className={`overflow-hidden transition-all duration-500 border-2 ${hasAccess ? 'border-primary' : 'border-muted'}`}>
-        <div className={`h-1 w-full transition-all duration-1000 ${hasAccess ? 'bg-primary' : 'bg-muted'}`} />
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
